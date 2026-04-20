@@ -91,6 +91,20 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--ink
 .sort-table th{background:var(--accent-bg);padding:10px;font-size:0.9rem;text-align:center;border:1px solid var(--border)}
 .sort-table td{padding:8px;text-align:center;border:1px solid var(--border);min-width:60px}
 .sort-table select{padding:6px;border:1px solid var(--border);border-radius:4px;font-family:'Source Sans 3',sans-serif;font-size:0.9rem;background:white}
+
+/* Review mode */
+.review-btn{background:var(--accent);color:white;border:none;padding:12px 36px;border-radius:24px;font-size:1rem;cursor:pointer;margin-top:8px;font-family:'Source Sans 3',sans-serif;font-weight:600}
+.review-btn:hover{background:var(--accent-light)}
+.q-card.review-wrong{border-left-color:var(--error);background:#fffbfb}
+.q-card.review-correct{border-left-color:var(--success);background:#fbfff9}
+.explanation{margin-top:12px;padding:14px 16px;border-radius:8px;font-size:0.92rem;line-height:1.6;display:none}
+.explanation.show{display:block}
+.explanation.correct-exp{background:var(--success-bg);border-left:3px solid var(--success);color:var(--success)}
+.explanation.wrong-exp{background:var(--error-bg);border-left:3px solid var(--error);color:var(--ink)}
+.explanation strong{color:var(--success)}
+.explanation.wrong-exp strong{color:var(--error)}
+.options label.correct-answer{border-color:var(--success);background:var(--success-bg)}
+.options label.wrong-answer{border-color:var(--error);background:var(--error-bg)}
 </style>
 </head>
 <body>
@@ -143,6 +157,7 @@ const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyoUDRQx5VkV5
       <div id="missedItems"></div>
     </div>
     <div class="status-msg" id="statusMsg"></div>
+    <button class="review-btn" id="reviewBtn" onclick="reviewMissed()" style="display:none">Review What You Missed</button>
     <button class="close-btn" onclick="document.getElementById('resultsOverlay').classList.remove('show')">Close</button>
   </div>
 </div>
@@ -156,137 +171,136 @@ const questions = [
   {id:1,section:"Section 1: Escape to Freedom & Uncle Tom's Cabin",type:"mc",
     text:"What is the main reason the author wrote Passage 1 (Escape to Freedom)?",
     choices:["To demonstrate the intelligence of Northern military leaders","To share the true story of a courageous figure from American history","To amuse readers with a made-up story set during the Civil War","To describe the most common way enslaved people fled the South"],
-    answer:1},
+    answer:1,explain:"The passage is a factual, nonfiction account of Robert Smalls\u2019s real escape. The author\u2019s purpose is to share the story of a brave historical figure\u2014not to entertain with fiction or describe a typical escape method."},
   {id:2,type:"mc",
     text:"What do the following sentences from paragraph 2 suggest about the author\u2019s view of Smalls?",
     excerpt:"\u201COver time, he became an excellent sailor and navigator. He could steer any ship through narrow waterways without running into rocks.\u201D",
     choices:["She is impressed by his abilities.","She is jealous of his talent on the water.","She suspects he overstated parts of his background.","She feels he should have tried to flee earlier."],
-    answer:0},
+    answer:0,explain:"Words like \u201Cexcellent\u201D and the description of his skill steering through narrow waterways show the author\u2019s admiration for Smalls\u2019s abilities. There\u2019s no jealousy, doubt, or criticism in the tone."},
   {id:3,type:"twopart",
     textA:"What role does paragraph 2 of Passage 1 play in developing the account of Smalls\u2019s escape?",
     choicesA:["It reveals how he gained the knowledge to operate a ship.","It identifies the specific city where he was born.","It explains the reason his master sent him to work for others.","It tells the reader how old he was when he started laboring."],
     answerA:0,
     textB:"Which detail from paragraph 2 most clearly supports your answer to Part A?",
     choicesB:["\u201CSmalls was born into slavery on April 5, 1839, in Beaufort, South Carolina.\u201D","\u201CBy the time he was 12 years old, his master began to hire him out . . .\u201D","\u201COver time, he became an excellent sailor and navigator.\u201D","\u201CHe could steer any ship through narrow waterways . . .\u201D"],
-    answerB:2},
+    answerB:2,explain:"Paragraph 2 develops the escape story by showing how Smalls learned to sail\u2014without these skills, the escape couldn\u2019t have happened. The line about becoming \u201Can excellent sailor and navigator\u201D is the most direct support."},
   {id:4,type:"mc",
     text:"The word nautical originates from the Latin nauticus, meaning \u201Cship.\u201D Which definition best fits the way nautical is used in paragraph 2 of Passage 1?",
     choices:["Explaining how to construct a vessel fit for the sea","Designed for steering and guiding boats on waterways","Intended to teach someone to become a ship\u2019s captain","Recording the number of vessels docked at each port"],
-    answer:1},
+    answer:1,explain:"In context, Smalls learned to read nautical maps\u2014maps used for navigating ships on water. The Latin root \u201Cship\u201D connects to navigation and steering, not building ships or counting them."},
   {id:5,type:"mc",
     text:"According to paragraph 7, what allowed the Planter to get past both forts without being stopped?",
     choices:["Smalls was familiar with the correct signals to use.","Smalls had personal connections with the harbor sentries.","Smalls positioned the ship beyond the reach of the fort\u2019s cannons.","Smalls pushed the vessel to top speed during the final stretch."],
-    answer:0},
+    answer:0,explain:"Paragraph 7 specifically describes Smalls giving \u201Ctwo long pulls followed by one short pull on the whistle cord\u201D\u2014the secret signal. He also wore the captain\u2019s hat as a disguise. The signals are what got him past the forts."},
   {id:6,type:"multi",
     text:"Reread paragraph 9 of Passage 1. Identify two words that help create the author\u2019s tone of respect toward Smalls. (Select two.)",
     choices:["deed","heroic","severe","awarded","money"],
-    answer:[1,3]},
+    answer:[1,3],explain:"\u201CHeroic\u201D directly praises Smalls\u2019s bravery, and \u201Cawarded\u201D shows he was recognized and honored. \u201CSevere\u201D describes potential punishment (negative), and \u201Cdeed\u201D and \u201Cmoney\u201D are neutral words that don\u2019t convey respect."},
   {id:7,type:"twopart",
     textA:"How is paragraph 11 of Passage 1 organized?",
     choicesA:["Compare and contrast","Chronological order","Problem/solution","Cause and effect"],
     answerA:3,
     textB:"Which detail from paragraph 11 best supports your answer?",
     choicesB:["\u201CSmalls\u2019s actions introduced him to important men.\u201D","\u201CIn a meeting with President Abraham Lincoln . . .\u201D","\u201C. . . African Americans could make an important contribution . . .\u201D","\u201CSmalls helped raise 5,000 volunteers . . .\u201D"],
-    answerB:0},
+    answerB:0,explain:"Paragraph 11 shows cause and effect: Smalls\u2019s actions (cause) led to meeting important people and raising volunteers (effects). The sentence \u201CSmalls\u2019s actions introduced him to important men\u201D directly shows this cause\u2192effect relationship."},
   {id:8,type:"mc",
     text:"What organizational pattern does Passage 1 primarily follow?",
     choices:["Cause and effect","Problem/solution","Chronological order","Compare and contrast"],
-    answer:2},
+    answer:2,explain:"The passage moves through Smalls\u2019s life in time order: birth (1839) \u2192 childhood jobs \u2192 working on the Planter (1861) \u2192 escape (1862) \u2192 promotions \u2192 end of war \u2192 death (1915). That\u2019s chronological order."},
   {id:9,type:"twopart",
     textA:"What central message does Passage 2 (Uncle Tom\u2019s Cabin) convey?",
     choicesA:["During stressful times, having a strong support system is essential.","The drive to protect someone you love can inspire extraordinary courage.","Truly compassionate people demonstrate empathy through deeds, not just words.","Many people are ultimately brought down by their own selfishness."],
     answerA:1,
     textB:"Which excerpt from Passage 2 provides the strongest support for the answer to Part A?",
     choicesB:["\u201CThe fact is, Emily, the thing\u2019s done; the bills of sale are already signed . . .\u201D (paragraph 1)","\u201C. . . They shall see, at any rate, that their mistress can feel for and with them . . .\u201D (paragraph 6)","\u201COh, missis! dear missis! don\u2019t think me ungrateful . . .\u201D (paragraph 12)","\u201C. . . A wicked man was coming to take little Harry away . . . but mother won\u2019t let him . . .\u201D (paragraph 16)"],
-    answerB:3},
+    answerB:3,explain:"Eliza\u2019s entire escape is driven by her love for Harry and her need to protect him. The paragraph 16 excerpt shows this most clearly: \u201Cmother won\u2019t let him\u201D\u2014her love for her child gives her the courage to flee."},
   {id:10,type:"mc",
     text:"The simile used to describe Haley in paragraph 3 of Passage 2 suggests that he is\u2014",
     excerpt:"\u201CWhy, not a cruel man, exactly, but a man of leather,\u2014a man alive to nothing but trade and profit,\u2014cool, and unhesitating, and unrelenting, as death and the grave.\u201D",
     choices:["Willing to do whatever it takes to earn a profit","Respected for making shrewd business choices","Frequently misunderstood by those around him","Suffering from poor physical health"],
-    answer:0},
+    answer:0,explain:"The simile compares Haley to \u201Cdeath and the grave\u201D\u2014meaning he\u2019s unstoppable and cold when it comes to making money. \u201CAlive to nothing but trade and profit\u201D confirms he\u2019ll do anything for a dollar."},
   {id:11,type:"mc",
     text:"What impact does the simile in paragraph 9 of Passage 2 have on the passage?",
     excerpt:"\u201C. . . and a smile spread like a sunbeam over his whole face.\u201D",
     choices:["It draws attention to Harry\u2019s curly hair.","It underscores Harry\u2019s purity and innocence.","It reveals information about Harry\u2019s sleep patterns.","It shows that Harry has a naturally relaxed temperament."],
-    answer:1},
+    answer:1,explain:"Comparing Harry\u2019s smile to a \u201Csunbeam\u201D emphasizes warmth, light, and purity. In the context of a child sleeping peacefully while his fate is being decided, this highlights his innocence."},
   {id:12,type:"mc",
     text:"What does the figurative language in paragraph 11 of Passage 2 convey?",
     excerpt:"\u201CNo tear dropped over that pillow; in such straits as these, the heart has no tears to give; it drops only blood, bleeding itself away in silence.\u201D",
     choices:["Eliza considers crying to be a weakness.","Eliza\u2019s heart could be harmed if she allowed herself to weep.","Eliza does not want to disturb the quiet by crying aloud.","Eliza\u2019s circumstances are so dire that she is beyond the point of tears."],
-    answer:3},
+    answer:3,explain:"The figurative language says her heart \u201Chas no tears to give\u201D\u2014her situation is so desperate and urgent that grief goes beyond crying. She can\u2019t afford to break down; she has to act."},
   {id:13,type:"mc",
     text:"What conclusion can be drawn about the setting of Passage 2?",
     choices:["The household places great importance on family bonds.","The community is made up of many different types of people.","Slavery is on the verge of being outlawed in the characters\u2019 state.","Enslaved individuals are regarded as property in that society."],
-    answer:3},
+    answer:3,explain:"The passage shows people being sold through \u201Cbills of sale\u201D\u2014legal documents for property. Tom and Harry are being traded as goods. This tells us that in this setting, enslaved people are treated as property."},
   {id:14,type:"multi",
     text:"Select two statements that best explain how the historical subject matter is handled differently in Passages 1 and 2. (Select two.)",
     choices:["Passage 1 presents a nonfiction account of real events, while Passage 2 offers a fictional portrayal of the era.","Passage 1 focuses on the impact of war on families, while Passage 2 explores the causes of the conflict between states.","Passage 1 details a particular battle of the Civil War, while Passage 2 describes how enslaved people gained their freedom.","Passage 1 shows how one man\u2019s deeds aided the Union cause, while Passage 2 gives readers a window into a character\u2019s thoughts.","Passage 1 demonstrates the power of strangers working together, while Passage 2 contrasts that with the importance of family."],
-    answer:[0,3]},
+    answer:[0,3],explain:"Passage 1 is a true, factual account; Passage 2 is fiction (a novel). And Passage 1 focuses on Smalls\u2019s actions helping the Union, while Passage 2 takes us inside Eliza\u2019s mind and emotions as she decides to escape."},
   {id:15,type:"written",
     text:"How are the central ideas of Passage 1 and Passage 2 similar and different? Use specific examples from both texts to support your answer."},
-
   // SECTION 2: Frederick Douglass poem & My Bondage (Q16-29)
   {id:16,section:"Section 2: Frederick Douglass (Poem) & My Bondage and My Freedom",type:"multi",
     text:"Which two lines from the poem convey a mood of silent mourning? (Select two.)",
     choices:["\u201CA hush is over all the teeming lists,\u201D (line 1)","\u201CAnd there is pause, a breath-space in the strife;\u201D (line 2)","\u201CHe was her champion thro\u2019 direful years,\u201D (line 9)","\u201CAnd gloated o\u2019er the mis\u2019ries of a race.\u201D (line 18)","\u201CAnd he was no soft-tongued apologist;\u201D (line 19)"],
-    answer:[0,1]},
+    answer:[0,1],explain:"\u201CA hush\u201D and \u201Ca pause, a breath-space\u201D both describe stillness and silence\u2014the quiet that follows loss. The other lines describe action, cruelty, or character traits, not a quiet mourning mood."},
   {id:17,type:"mc",
     text:"In lines 5\u20138, the poet references Ethiopia. What is the importance of this allusion?",
     choices:["Ethiopia symbolizes the grief felt by Douglass\u2019s own mother.","Many advocates for freedom originally came from Ethiopia.","Numerous enslaved people descended from Ethiopian nobility.","Ethiopia stands as a symbol for Douglass\u2019s African heritage and ancestry."],
-    answer:3},
+    answer:3,explain:"Ethiopia is used as a symbol for Africa and African heritage broadly. The poet personifies Ethiopia as a grieving mother figure who represents Douglass\u2019s ancestral homeland mourning the loss of one of its greatest sons."},
   {id:18,type:"mc",
     text:"How does the poet use the bow-and-arrow imagery in lines 15\u201316?",
     excerpt:"\u201CFor her the strong bow of his power he strung, / And sent his arrows to the very den\u201D",
     choices:["As a hint about a theme of military victory","As a reference to a specific Civil War engagement","As a flashback to Douglass\u2019s experience on the front lines","As a metaphor for Douglass\u2019s fight against the institution of slavery"],
-    answer:3},
+    answer:3,explain:"Douglass didn\u2019t literally fight with weapons. The bow and arrows are a metaphor\u2014his \u201Cpower\u201D (words, advocacy) was his weapon, and he aimed it at the \u201Cden\u201D where Oppression lived. It\u2019s figurative, not literal."},
   {id:19,type:"twopart",
     textA:"Reread lines 13\u201318. Which literary technique does the poet employ?",
     choicesA:["Allusion","Foreshadowing","Onomatopoeia","Personification"],
     answerA:3,
     textB:"What effect does this literary technique have on the poem?",
     choicesB:["It references a significant historical event in Ethiopia.","It produces a sound effect that mimics the clarion.","It implies that Oppression is a force that can be challenged and defeated.","It hints at future racial discrimination and societal inequality."],
-    answerB:2},
+    answerB:2,explain:"The poet personifies Oppression by giving it human qualities: it \u201Cheld his bloody place\u201D and \u201Cgloated.\u201D By making Oppression a character, the poet shows it can be fought and defeated\u2014it\u2019s not an unstoppable force."},
   {id:20,type:"mc",
     text:"What is the effect of repeating the words lightning and thunder in lines 29\u201330?",
     excerpt:"\u201CHe dared the lightning in the lightning\u2019s track, / And answered thunder with his thunder back.\u201D",
     choices:["It conveys an unstoppable drive to win at any cost.","It reveals a wish to understand the opposing side\u2019s perspective.","It implies the strength to confront injustice with an equally powerful response.","It illustrates the determination to press forward even through hardship."],
-    answer:2},
+    answer:2,explain:"The repetition creates a mirror effect: lightning meets lightning, thunder meets thunder. This shows Douglass matching the power of injustice with equal force\u2014he gave back exactly as strong as he received."},
   {id:21,type:"twopart",
     textA:"Reread lines 55\u201362. What effect does the imagery in this final stanza have?",
     choicesA:["It offers a glimpse into the accomplishments that shaped Douglass\u2019s life.","It stresses how Douglass\u2019s words and influence persist beyond his death.","It presents an imaginative comparison of different perspectives on Douglass.","It establishes a rhythmic pattern that amplifies the poem\u2019s emotional impact."],
     answerA:1,
     textB:"Which line most directly supports your answer to Part A?",
     choicesB:["\u201COh, Douglass, thou hast passed beyond the shore,\u201D (line 55)","\u201CBut still thy voice is ringing o\u2019er the gale!\u201D (line 56)","\u201CShe will not fail, she heeds thy stirring cry,\u201D (line 59)","\u201CAnd, rising from beneath the chast\u2019ning rod,\u201D (line 61)"],
-    answerB:1},
+    answerB:1,explain:"The stanza\u2019s imagery emphasizes that Douglass\u2019s influence lives on after death. Line 56\u2014\u201Cstill thy voice is ringing\u201D\u2014is the most direct proof: even though he\u2019s gone, his voice (message) still echoes."},
   {id:22,type:"twopart",
     textA:"What is the overarching theme of the poem?",
     choicesA:["Douglass\u2019s devotion to his homeland and people drove his passionate work.","Douglass\u2019s bravery allowed him to overcome every opponent.","Douglass\u2019s legacy will continue to motivate others to stand against injustice long after his passing.","Douglass\u2019s truthfulness gave his people strength during their darkest hours."],
     answerA:2,
     textB:"Which line provides the best evidence for your answer?",
     choicesB:["\u201CShe loved him with a mother\u2019s deepest love.\u201D (line 8)","\u201CTo sin and crime he gave their proper hue,\u201D (line 23)","\u201CStill in the foremost rank he waged the fray;\u201D (line 46)","\u201CThou\u2019st taught thy race how high her hopes may soar,\u201D (line 57)"],
-    answerB:3},
+    answerB:3,explain:"The poem\u2019s biggest message is that Douglass\u2019s legacy will inspire future generations. Line 57 captures this: he \u201Ctaught\u201D his race \u201Chow high her hopes may soar\u201D\u2014his influence continues to lift people up even after his death."},
   {id:23,type:"mc",
     text:"Why did Frederick Douglass write Passage 2 (from My Bondage and My Freedom)?",
     choices:["To motivate others by sharing the true account of his flight from slavery","To teach his friends about strategies for escaping Baltimore","To voice his frustration about the meager pay he earned","To detail the operations of the Underground Railroad"],
-    answer:0},
+    answer:0,explain:"Douglass wrote his autobiography to inspire others with his real story of escaping slavery. He wasn\u2019t writing a how-to guide, complaining about wages, or explaining the Underground Railroad in detail."},
   {id:24,type:"mc",
     text:"Which sentence from paragraph 1 of Passage 2 best illustrates a cause-and-effect relationship?",
     choices:["\u201CI was a favorite with Mr. B., and, young as I was, I had served as his foreman on the float stage, at calking.\u201D","\u201CHe was very much pleased; he took the money, commended me, and told me I might have done the same thing the week before.\u201D","\u201CMy object, therefore, in working steadily, was to remove suspicion, and in this I succeeded admirably.\u201D","\u201CI told him I would, for one of the uses to which I meant to put it, was to pay my fare on the underground railroad.\u201D"],
-    answer:2},
+    answer:2,explain:"This sentence is a clear cause\u2192effect: the cause is \u201Cworking steadily\u201D and the effect is \u201Cremove suspicion . . . I succeeded admirably.\u201D The word \u201Ctherefore\u201D is a signal word for cause and effect."},
   {id:25,type:"mc",
     text:"Which word, if it replaced \u201Chindered,\u201D would give the sentence a more negative tone?",
     excerpt:"\u201CThe daughter is hindered from escaping, by the love she bears her mother . . .\u201D",
     choices:["Delayed","Hampered","Prohibited","Discouraged"],
-    answer:2},
+    answer:2,explain:"\u201CHindered\u201D means held back or made difficult. \u201CProhibited\u201D means completely forbidden\u2014it\u2019s stronger and more negative. \u201CDelayed\u201D and \u201Champered\u201D are similar in strength to \u201Chindered,\u201D and \u201Cdiscouraged\u201D is actually softer."},
   {id:26,type:"mc",
     text:"The word repose comes from Latin roots meaning \u201Cto pause.\u201D Which word could best replace repose while keeping a similar meaning?",
     excerpt:"\u201COnce resolved, I felt a certain degree of repose . . .\u201D",
     choices:["Peace","Stillness","Defiance","Understanding"],
-    answer:0},
+    answer:0,explain:"In context, Douglass made a decision and felt calm afterward. \u201CPeace\u201D captures that sense of inner calm. \u201CStillness\u201D is more physical than emotional, \u201Cdefiance\u201D means rebellion, and \u201Cunderstanding\u201D doesn\u2019t fit the feeling described."},
   {id:27,type:"mc",
     text:"Which statement best captures the main idea of Passage 2?",
     choices:["Douglass carefully planned his escape and felt sorrow only about leaving behind his close friends.","Douglass secured work to fund his escape and longed to bring his family along.","Douglass fled slavery through the Underground Railroad and was deeply thankful for the help he received.","Douglass acted loyal to his master while remaining under constant suspicion."],
-    answer:0},
+    answer:0,explain:"Douglass planned carefully (worked to remove suspicion, saved money) and the passage emphasizes his sadness about leaving friends: \u201Cthe thought of leaving my friends was among the strongest obstacles.\u201D He didn\u2019t mention wanting to bring family, and he deliberately kept details of his actual escape secret."},
   {id:28,type:"sorting",
     text:"Determine whether each description applies to Passage 1 (the poem) or Passage 2 (the autobiography).",
     items:[
@@ -295,41 +309,40 @@ const questions = [
       {label:"Narrates the events leading up to Douglass\u2019s escape",answer:"Passage 2"},
       {label:"Details the labor Douglass performed before gaining freedom",answer:"Passage 2"},
       {label:"Employs vivid, poetic language to capture Douglass\u2019s impact",answer:"Passage 1"}
-    ]},
+    ],explain:"The poem (Passage 1) is about honoring Douglass as a hero and using poetic language. The autobiography (Passage 2) is Douglass\u2019s own account of the practical details\u2014his work, his plans, and the events leading to escape."},
   {id:29,type:"written",
     text:"How are the purposes of Passage 1 (the poem) and Passage 2 (the autobiography) alike and different? Use specific examples from both texts to support your response."},
-
   // SECTION 3: Language Conventions (Q30-35)
   {id:30,section:"Section 3: Language Conventions",type:"mc",
     text:"Choose the correction for the underlined portion:",
     excerpt:"\u201CIf I had been a woman living during those years, I would be so disappointed.\u201D",
     choices:["have been","has been","being","correct as is"],
-    answer:0},
+    answer:0,explain:"This is a past unreal conditional. The formula is: \u201CIf + had + past participle, would have + past participle.\u201D So \u201CI would be\u201D should be \u201CI would have been.\u201D"},
   {id:31,type:"mc",
     text:"Choose the correction for the underlined portion:",
     excerpt:"\u201C. . . suffragists held protests, marched in the streets, and had been arrested and beaten for supporting these efforts.\u201D",
     choices:["is arrested","was arrested","were arrested","correct as is"],
-    answer:2},
+    answer:2,explain:"Parallel structure: the verbs in the list need to match. \u201CHeld\u201D and \u201Cmarched\u201D are simple past tense, so the third verb should also be simple past: \u201Cwere arrested.\u201D \u201CHad been arrested\u201D is past perfect, which breaks the pattern."},
   {id:32,type:"mc",
     text:"Choose the correction for the underlined portion:",
     excerpt:"\u201CIf Stanton and Anthony had not been such brave soldiers, our country would be turned out very differently.\u201D",
     choices:["would","would of","would have","correct as is"],
-    answer:2},
+    answer:2,explain:"Another past unreal conditional: \u201CIf [had not been], would have [turned out].\u201D Also, \u201Cwould of\u201D is always wrong\u2014it\u2019s a common mistake because \u201Cwould\u2019ve\u201D sounds like \u201Cwould of.\u201D The correct form is always \u201Cwould have.\u201D"},
   {id:33,type:"mc",
     text:"Choose the correction for the underlined portion:",
     excerpt:"\u201CAdditionally, voting restrictions were enacted of ensuring that very few women or people of color could actually exercise their rights.\u201D",
     choices:["to be ensuring","to ensure","for ensure","correct as is"],
-    answer:1},
+    answer:1,explain:"This needs an infinitive of purpose: the restrictions were enacted \u201Cto ensure\u201D (= in order to ensure). \u201COf ensuring,\u201D \u201Cto be ensuring,\u201D and \u201Cfor ensure\u201D are all grammatically incorrect."},
   {id:34,type:"mc",
     text:"Choose the correction for the underlined portion:",
     excerpt:"\u201C. . . granted the right to vote to people of all genders and races by prohibiting discrimination in American elections.\u201D",
     choices:["of vote","of voting","to voting","correct as is"],
-    answer:3},
+    answer:3,explain:"This one is already correct! \u201CThe right to vote\u201D is a proper infinitive phrase. Don\u2019t change it\u2014none of the other options (\u201Cof vote,\u201D \u201Cof voting,\u201D \u201Cto voting\u201D) are grammatically correct here."},
   {id:35,type:"mc",
     text:"Choose the correction for the underlined portion:",
     excerpt:"\u201CWhat do you think you did during those years?\u201D",
     choices:["would have done","would do","do","correct as is"],
-    answer:0},
+    answer:0,explain:"The passage is asking a hypothetical question about the past (\u201Cwhat would you have done if you had lived back then?\u201D). That requires the conditional perfect: \u201Cwould have done.\u201D Simple past \u201Cdid\u201D doesn\u2019t work for a hypothetical."},
 ];
 
 // ============================
@@ -524,6 +537,134 @@ function submitTest() {
   }
 
   document.getElementById('submitBtn').disabled = true;
+
+  // Show review button if they missed any
+  if (missed.length > 0) {
+    document.getElementById('reviewBtn').style.display = 'inline-block';
+    window._missedIds = missed; // store for review
+  }
+}
+
+// ============================
+// REVIEW MISSED QUESTIONS
+// ============================
+function reviewMissed() {
+  document.getElementById('resultsOverlay').classList.remove('show');
+
+  // Scroll to top
+  window.scrollTo({top: 0, behavior: 'smooth'});
+
+  // For each question, show correct/wrong highlighting and explanation
+  questions.forEach(q => {
+    if (q.type === 'written') return;
+    const card = document.getElementById('q' + q.id);
+    if (!card) return;
+
+    // Remove old review classes
+    card.classList.remove('review-wrong', 'review-correct');
+
+    // Remove existing explanations
+    const oldExp = card.querySelector('.explanation');
+    if (oldExp) oldExp.remove();
+
+    if (q.type === 'mc') {
+      const sel = document.querySelector(`input[name="q${q.id}"]:checked`);
+      const labels = card.querySelectorAll('.options label');
+      const isCorrect = sel && parseInt(sel.value) === q.answer;
+
+      if (!isCorrect) {
+        card.classList.add('review-wrong');
+        // Mark wrong answer
+        if (sel) labels[parseInt(sel.value)].classList.add('wrong-answer');
+        // Highlight correct answer
+        labels[q.answer].classList.add('correct-answer');
+        // Add explanation
+        if (q.explain) {
+          const exp = document.createElement('div');
+          exp.className = 'explanation wrong-exp show';
+          exp.innerHTML = '<strong>Correct answer: ' + q.choices[q.answer] + '</strong><br>' + q.explain;
+          card.appendChild(exp);
+        }
+      } else {
+        card.classList.add('review-correct');
+        labels[q.answer].classList.add('correct-answer');
+      }
+    } else if (q.type === 'multi') {
+      const checked = Array.from(document.querySelectorAll(`input[name="q${q.id}"]:checked`)).map(i=>parseInt(i.value));
+      const correct = q.answer.slice().sort();
+      checked.sort();
+      const isCorrect = JSON.stringify(checked) === JSON.stringify(correct);
+      const labels = card.querySelectorAll('.options label');
+
+      if (!isCorrect) {
+        card.classList.add('review-wrong');
+        checked.forEach(i => { if (!q.answer.includes(i)) labels[i].classList.add('wrong-answer'); });
+        q.answer.forEach(i => labels[i].classList.add('correct-answer'));
+        if (q.explain) {
+          const exp = document.createElement('div');
+          exp.className = 'explanation wrong-exp show';
+          exp.innerHTML = '<strong>Correct answers: ' + q.answer.map(i => q.choices[i]).join(' & ') + '</strong><br>' + q.explain;
+          card.appendChild(exp);
+        }
+      } else {
+        card.classList.add('review-correct');
+      }
+    } else if (q.type === 'twopart') {
+      const selA = document.querySelector(`input[name="q${q.id}a"]:checked`);
+      const selB = document.querySelector(`input[name="q${q.id}b"]:checked`);
+      const correctA = selA && parseInt(selA.value) === q.answerA;
+      const correctB = selB && parseInt(selB.value) === q.answerB;
+
+      // Get Part A and Part B option groups
+      const allOptions = card.querySelectorAll('.options');
+      const labelsA = allOptions[0] ? allOptions[0].querySelectorAll('label') : [];
+      const labelsB = allOptions[1] ? allOptions[1].querySelectorAll('label') : [];
+
+      if (!correctA || !correctB) {
+        card.classList.add('review-wrong');
+        if (!correctA && selA) labelsA[parseInt(selA.value)].classList.add('wrong-answer');
+        if (labelsA[q.answerA]) labelsA[q.answerA].classList.add('correct-answer');
+        if (!correctB && selB) labelsB[parseInt(selB.value)].classList.add('wrong-answer');
+        if (labelsB[q.answerB]) labelsB[q.answerB].classList.add('correct-answer');
+        if (q.explain) {
+          const exp = document.createElement('div');
+          exp.className = 'explanation wrong-exp show';
+          let txt = '';
+          if (!correctA) txt += '<strong>Part A correct: ' + q.choicesA[q.answerA] + '</strong><br>';
+          if (!correctB) txt += '<strong>Part B correct: ' + q.choicesB[q.answerB] + '</strong><br>';
+          txt += q.explain;
+          exp.innerHTML = txt;
+          card.appendChild(exp);
+        }
+      } else {
+        card.classList.add('review-correct');
+      }
+    } else if (q.type === 'sorting') {
+      let allCorrect = true;
+      q.items.forEach((item, ii) => {
+        const sel = document.querySelector(`select[name="q${q.id}_${ii}"]`);
+        if (!sel || sel.value !== item.answer) allCorrect = false;
+      });
+      if (!allCorrect) {
+        card.classList.add('review-wrong');
+        if (q.explain) {
+          const exp = document.createElement('div');
+          exp.className = 'explanation wrong-exp show';
+          exp.innerHTML = '<strong>Correct sorting:</strong><br>' + q.items.map(i => i.label + ' \u2192 ' + i.answer).join('<br>') + '<br><br>' + q.explain;
+          card.appendChild(exp);
+        }
+      } else {
+        card.classList.add('review-correct');
+      }
+    }
+  });
+
+  // Scroll to first missed question
+  if (window._missedIds && window._missedIds.length > 0) {
+    const firstMissed = window._missedIds[0].replace(/[AB]$/, '');
+    const el = document.getElementById('q' + firstMissed.replace('Q',''));
+    if (el) setTimeout(() => el.scrollIntoView({behavior:'smooth', block:'center'}), 300);
+  }
 }
 </script>
 </body>
