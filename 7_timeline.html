@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeline Builder — The Fight for Freedom</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf8f5;--surface:#ffffff;--ink:#1a1a2e;--ink-light:#555568;--accent:#b8860b;--accent-light:#daa520;--accent-bg:#fdf6e3;--success:#2d6a4f;--success-bg:#d8f3dc;--error:#9b2226;--error-bg:#fde8e8;--border:#e0ddd6;--radius:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;padding:24px 16px 80px;max-width:700px;margin:0 auto;-webkit-user-select:none;user-select:none}
+h1{font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;color:var(--ink-light);font-size:0.95rem;margin-bottom:6px}
+.instructions{text-align:center;color:var(--ink-light);font-size:0.88rem;margin-bottom:20px;font-style:italic}
+
+/* Round tabs */
+.round-tabs{display:flex;gap:6px;justify-content:center;margin-bottom:20px}
+.round-tab{padding:8px 20px;border-radius:20px;font-weight:600;font-size:0.88rem;border:2px solid var(--border);background:var(--surface);color:var(--ink-light);cursor:default;transition:all 0.2s}
+.round-tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+.round-tab.done{border-color:var(--success);color:var(--success);background:var(--success-bg)}
+
+.round-title{text-align:center;font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:16px}
+
+/* Timeline drop zone */
+.timeline{position:relative;padding:12px 0 12px 40px;margin-bottom:24px}
+.timeline::before{content:'';position:absolute;left:18px;top:0;bottom:0;width:3px;background:var(--border);border-radius:2px}
+.slot{position:relative;min-height:60px;margin-bottom:8px;padding:14px 16px;border:2px dashed var(--border);border-radius:var(--radius);background:rgba(255,255,255,0.5);transition:all 0.2s;display:flex;align-items:center;gap:12px}
+.slot::before{content:'';position:absolute;left:-29px;width:14px;height:14px;border-radius:50%;background:var(--border);border:3px solid var(--bg);z-index:1;transition:background 0.3s}
+.slot.filled{border-style:solid;border-color:var(--accent);background:var(--accent-bg)}
+.slot.filled::before{background:var(--accent)}
+.slot.correct{border-color:var(--success);background:var(--success-bg)}
+.slot.correct::before{background:var(--success)}
+.slot.wrong{border-color:var(--error);background:var(--error-bg)}
+.slot.wrong::before{background:var(--error)}
+.slot.drag-over{border-color:var(--accent-light);background:var(--accent-bg);transform:scale(1.02)}
+.slot .slot-num{font-weight:700;color:var(--accent);font-size:0.85rem;min-width:20px}
+.slot .slot-text{font-size:0.92rem;flex:1}
+.slot .remove-btn{background:none;border:none;color:var(--error);font-size:1.2rem;cursor:pointer;padding:4px 8px;opacity:0.6;transition:opacity 0.2s}
+.slot .remove-btn:hover{opacity:1}
+
+/* Event cards pool */
+.pool-label{font-weight:700;font-size:0.85rem;color:var(--ink-light);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px}
+.pool{display:flex;flex-direction:column;gap:6px;margin-bottom:24px;min-height:40px}
+.event-card{padding:12px 16px;background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);cursor:grab;font-size:0.92rem;transition:all 0.15s;box-shadow:0 1px 4px rgba(0,0,0,0.06);touch-action:none}
+.event-card:hover{border-color:var(--accent);box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.event-card:active{cursor:grabbing;transform:scale(0.98)}
+.event-card.dragging{opacity:0.4}
+.event-card .source-tag{display:inline-block;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:10px;margin-right:6px}
+.event-card .source-tag.smalls{background:#e8eef6;color:#4a6fa5}
+.event-card .source-tag.douglass{background:#e8f5e0;color:#3d7a3d}
+.event-card .source-tag.eliza{background:#f5e6f0;color:#8a4a7a}
+
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{padding:10px 24px;border-radius:24px;font-family:'Source Sans 3',sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer;border:2px solid var(--border);background:var(--surface);color:var(--ink);transition:all 0.2s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);color:white;border-color:var(--accent)}
+.btn.primary:hover{background:var(--accent-light)}
+.btn:disabled{opacity:0.4;cursor:default}
+
+.feedback{text-align:center;margin-top:16px;font-weight:700;font-size:1.05rem;min-height:28px}
+.feedback.correct{color:var(--success)}
+.feedback.wrong{color:var(--error)}
+
+.completion{display:none;text-align:center;padding:32px;background:var(--success-bg);border-radius:var(--radius);margin-top:24px}
+.completion.show{display:block;animation:popIn 0.5s ease}
+.completion h2{font-family:'Playfair Display',serif;color:var(--success);font-size:1.5rem;margin-bottom:6px}
+@keyframes popIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+</style>
+</head>
+<body>
+
+<h1>Timeline Builder</h1>
+<p class="subtitle">The Fight for Freedom Unit</p>
+<p class="instructions">Drag the events into the correct chronological order. Tap an event, then tap a slot on mobile.</p>
+
+<div class="round-tabs" id="roundTabs"></div>
+<div class="round-title" id="roundTitle"></div>
+
+<div class="pool-label">Events (drag into order below):</div>
+<div class="pool" id="pool"></div>
+
+<div class="timeline" id="timeline"></div>
+
+<div class="controls">
+  <button class="btn primary" id="checkBtn" onclick="checkOrder()" disabled>Check Order</button>
+  <button class="btn" onclick="resetRound()">Reset</button>
+</div>
+
+<div class="feedback" id="feedback"></div>
+<div class="completion" id="completion">
+  <h2>All Timelines Complete!</h2>
+  <p>You've got the sequence of events down. Great work!</p>
+</div>
+
+<script>
+const ROUNDS = [
+  {
+    title: "Robert Smalls — Escape to Freedom",
+    events: [
+      {text:"Smalls is born into slavery in Beaufort, South Carolina", tag:"smalls", year:"1839"},
+      {text:"Smalls is hired out to work at the docks in Charleston", tag:"smalls", year:"1851"},
+      {text:"Smalls begins working on the Confederate steamer Planter", tag:"smalls", year:"1861"},
+      {text:"The Planter's white officers leave the ship to spend the night ashore", tag:"smalls", year:"May 13, 1862"},
+      {text:"Smalls picks up his family and crewmen's families from a nearby wharf", tag:"smalls", year:"May 13, 1862"},
+      {text:"Smalls gives the secret whistle signal and passes Fort Sumter", tag:"smalls", year:"May 13, 1862"},
+      {text:"Smalls surrenders the Planter to the USS Onward", tag:"smalls", year:"May 13, 1862"},
+      {text:"Smalls meets President Lincoln and convinces him to enlist African Americans", tag:"smalls", year:"Aug 1862"},
+      {text:"Smalls is promoted to captain of the Planter", tag:"smalls", year:"Dec 1863"},
+    ]
+  },
+  {
+    title: "Eliza — Uncle Tom's Cabin",
+    events: [
+      {text:"Mr. Shelby tells his wife the bills of sale for Tom and Harry are signed", tag:"eliza", year:"1"},
+      {text:"Mrs. Shelby refuses to be an accomplice in the 'cruel business'", tag:"eliza", year:"2"},
+      {text:"Eliza hides in a closet and overhears the entire conversation", tag:"eliza", year:"3"},
+      {text:"Eliza creeps stealthily to her room and sees Harry sleeping", tag:"eliza", year:"4"},
+      {text:"Eliza writes a note to her mistress asking for forgiveness", tag:"eliza", year:"5"},
+      {text:"Eliza packs clothing and a few of Harry's favorite toys", tag:"eliza", year:"6"},
+      {text:"Eliza wakes Harry and tells him about the 'wicked man'", tag:"eliza", year:"7"},
+      {text:"Eliza and Harry slip out through the verandah into the frosty night", tag:"eliza", year:"8"},
+    ]
+  },
+  {
+    title: "Frederick Douglass — My Bondage and My Freedom",
+    events: [
+      {text:"Douglass resolves to escape and feels a sense of repose", tag:"douglass", year:"1"},
+      {text:"Douglass goes to Mr. Butler's ship yard and obtains work", tag:"douglass", year:"2"},
+      {text:"Douglass brings Master Hugh nearly nine dollars at end of first week", tag:"douglass", year:"3"},
+      {text:"Master Hugh is pleased and tells Douglass he should have done this sooner", tag:"douglass", year:"4"},
+      {text:"Douglass brings full wages a second week; Hugh gives him twenty-five cents", tag:"douglass", year:"5"},
+      {text:"Douglass spends Friday and Saturday collecting his things for the journey", tag:"douglass", year:"6"},
+      {text:"Douglass hands Master Hugh six dollars on Saturday night", tag:"douglass", year:"7"},
+      {text:"On Monday, September 3, 1838, Douglass bids farewell to Baltimore and slavery", tag:"douglass", year:"8"},
+    ]
+  }
+];
+
+let currentRound = 0;
+let slots = [];
+let selectedCard = null;
+
+// Shuffle array
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Build round tabs
+function buildTabs() {
+  const tabs = document.getElementById('roundTabs');
+  tabs.innerHTML = '';
+  ROUNDS.forEach((r, i) => {
+    const tab = document.createElement('div');
+    tab.className = 'round-tab' + (i === currentRound ? ' active' : '');
+    tab.id = 'tab-' + i;
+    tab.textContent = 'Round ' + (i + 1);
+    tabs.appendChild(tab);
+  });
+}
+
+function renderRound() {
+  const round = ROUNDS[currentRound];
+  document.getElementById('roundTitle').textContent = round.title;
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('checkBtn').disabled = true;
+
+  // Build slots
+  const timeline = document.getElementById('timeline');
+  timeline.innerHTML = '';
+  slots = new Array(round.events.length).fill(null);
+  for (let i = 0; i < round.events.length; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    slot.dataset.idx = i;
+    slot.innerHTML = `<span class="slot-num">${i + 1}.</span><span class="slot-text" style="color:var(--ink-light);font-style:italic">Drop event here</span>`;
+    // Drag events
+    slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('drag-over'); });
+    slot.addEventListener('dragleave', () => slot.classList.remove('drag-over'));
+    slot.addEventListener('drop', e => { e.preventDefault(); slot.classList.remove('drag-over'); dropOnSlot(i); });
+    // Tap for mobile
+    slot.addEventListener('click', () => tapSlot(i));
+    timeline.appendChild(slot);
+  }
+
+  // Build pool
+  const pool = document.getElementById('pool');
+  pool.innerHTML = '';
+  const shuffled = shuffle(round.events.map((ev, i) => ({...ev, origIdx: i})));
+  shuffled.forEach((ev) => {
+    const card = document.createElement('div');
+    card.className = 'event-card';
+    card.draggable = true;
+    card.dataset.origIdx = ev.origIdx;
+    card.innerHTML = `<span class="source-tag ${ev.tag}">${ev.tag === 'smalls' ? 'Smalls' : ev.tag === 'eliza' ? 'Eliza' : 'Douglass'}</span>${ev.text}`;
+    card.addEventListener('dragstart', e => {
+      card.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', ev.origIdx);
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    // Tap for mobile
+    card.addEventListener('click', () => tapCard(card, ev.origIdx));
+    pool.appendChild(card);
+  });
+
+  buildTabs();
+}
+
+let draggedIdx = null;
+
+function dropOnSlot(slotIdx) {
+  const dragging = document.querySelector('.event-card.dragging');
+  if (!dragging) return;
+  const origIdx = parseInt(dragging.dataset.origIdx);
+  placeInSlot(slotIdx, origIdx, dragging);
+}
+
+function tapCard(card, origIdx) {
+  // Deselect if same card
+  if (selectedCard === card) {
+    card.style.outline = '';
+    selectedCard = null;
+    return;
+  }
+  // Select card
+  if (selectedCard) selectedCard.style.outline = '';
+  selectedCard = card;
+  card.style.outline = '3px solid var(--accent)';
+}
+
+function tapSlot(slotIdx) {
+  if (!selectedCard) return;
+  const origIdx = parseInt(selectedCard.dataset.origIdx);
+  placeInSlot(slotIdx, origIdx, selectedCard);
+  selectedCard.style.outline = '';
+  selectedCard = null;
+}
+
+function placeInSlot(slotIdx, origIdx, cardEl) {
+  const round = ROUNDS[currentRound];
+  const ev = round.events[origIdx];
+
+  // If slot already has something, put it back
+  if (slots[slotIdx] !== null) {
+    returnToPool(slots[slotIdx]);
+  }
+
+  slots[slotIdx] = origIdx;
+  cardEl.remove();
+
+  // Update slot display
+  const slotEl = document.querySelectorAll('.slot')[slotIdx];
+  slotEl.className = 'slot filled';
+  slotEl.innerHTML = `<span class="slot-num">${slotIdx + 1}.</span><span class="slot-text">${ev.text}</span><button class="remove-btn" onclick="removeFromSlot(${slotIdx})">&times;</button>`;
+
+  checkAllFilled();
+}
+
+function removeFromSlot(slotIdx) {
+  const origIdx = slots[slotIdx];
+  if (origIdx === null) return;
+  returnToPool(origIdx);
+  slots[slotIdx] = null;
+
+  const slotEl = document.querySelectorAll('.slot')[slotIdx];
+  slotEl.className = 'slot';
+  slotEl.innerHTML = `<span class="slot-num">${slotIdx + 1}.</span><span class="slot-text" style="color:var(--ink-light);font-style:italic">Drop event here</span>`;
+  // Re-add event listeners
+  slotEl.addEventListener('dragover', e => { e.preventDefault(); slotEl.classList.add('drag-over'); });
+  slotEl.addEventListener('dragleave', () => slotEl.classList.remove('drag-over'));
+  slotEl.addEventListener('drop', e => { e.preventDefault(); slotEl.classList.remove('drag-over'); dropOnSlot(slotIdx); });
+  slotEl.addEventListener('click', () => tapSlot(slotIdx));
+
+  document.getElementById('checkBtn').disabled = true;
+  document.getElementById('feedback').textContent = '';
+}
+
+function returnToPool(origIdx) {
+  const round = ROUNDS[currentRound];
+  const ev = round.events[origIdx];
+  const pool = document.getElementById('pool');
+  const card = document.createElement('div');
+  card.className = 'event-card';
+  card.draggable = true;
+  card.dataset.origIdx = origIdx;
+  card.innerHTML = `<span class="source-tag ${ev.tag}">${ev.tag === 'smalls' ? 'Smalls' : ev.tag === 'eliza' ? 'Eliza' : 'Douglass'}</span>${ev.text}`;
+  card.addEventListener('dragstart', e => {
+    card.classList.add('dragging');
+    e.dataTransfer.setData('text/plain', origIdx);
+  });
+  card.addEventListener('dragend', () => card.classList.remove('dragging'));
+  card.addEventListener('click', () => tapCard(card, origIdx));
+  pool.appendChild(card);
+}
+
+function checkAllFilled() {
+  const allFilled = slots.every(s => s !== null);
+  document.getElementById('checkBtn').disabled = !allFilled;
+}
+
+function checkOrder() {
+  const round = ROUNDS[currentRound];
+  let allCorrect = true;
+  const slotEls = document.querySelectorAll('.slot');
+
+  slotEls.forEach((el, i) => {
+    el.classList.remove('correct', 'wrong', 'filled');
+    if (slots[i] === i) {
+      el.classList.add('correct');
+    } else {
+      el.classList.add('wrong');
+      allCorrect = false;
+    }
+  });
+
+  const fb = document.getElementById('feedback');
+  if (allCorrect) {
+    fb.textContent = 'Perfect! All events are in the correct order!';
+    fb.className = 'feedback correct';
+
+    // Mark tab done
+    document.getElementById('tab-' + currentRound).className = 'round-tab done';
+
+    setTimeout(() => {
+      currentRound++;
+      if (currentRound >= ROUNDS.length) {
+        document.getElementById('completion').classList.add('show');
+      } else {
+        renderRound();
+      }
+    }, 1500);
+  } else {
+    const correctCount = slots.filter((s, i) => s === i).length;
+    fb.textContent = `${correctCount} of ${round.events.length} in the right spot. Keep trying!`;
+    fb.className = 'feedback wrong';
+  }
+}
+
+function resetRound() {
+  renderRound();
+}
+
+// Start
+renderRound();
+</script>
+</body>
+</html>

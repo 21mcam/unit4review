@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Search — The Fight for Freedom</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf8f5;--surface:#ffffff;--ink:#1a1a2e;--ink-light:#555568;--accent:#b8860b;--accent-bg:#fdf6e3;--success:#2d6a4f;--success-bg:#d8f3dc;--error:#9b2226;--border:#e0ddd6;--radius:12px;--cell:32px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;padding:20px 12px 80px;max-width:860px;margin:0 auto;-webkit-user-select:none;user-select:none}
+h1{font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;color:var(--ink-light);font-size:0.95rem;margin-bottom:4px}
+.instructions{text-align:center;color:var(--ink-light);font-size:0.85rem;margin-bottom:20px;font-style:italic}
+
+.game-area{display:flex;gap:24px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+
+.grid-wrapper{background:var(--surface);padding:16px;border-radius:var(--radius);box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+.grid{display:inline-grid;gap:0;cursor:crosshair}
+.grid-cell{width:var(--cell);height:var(--cell);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.95rem;border:1px solid rgba(0,0,0,0.04);transition:all 0.15s;border-radius:2px}
+.grid-cell:hover{background:var(--accent-bg)}
+.grid-cell.selecting{background:var(--accent-bg);color:var(--accent)}
+.grid-cell.found{background:var(--success-bg);color:var(--success);font-weight:800}
+
+.word-list{min-width:200px;max-width:260px}
+.word-list h3{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:10px;padding-bottom:4px;border-bottom:2px solid var(--accent)}
+.word-item{padding:6px 10px;font-size:0.9rem;font-weight:600;border-radius:6px;margin-bottom:3px;transition:all 0.2s;display:flex;justify-content:space-between;align-items:center}
+.word-item.found{color:var(--success);text-decoration:line-through;opacity:0.5}
+.word-item .check{display:none;color:var(--success)}
+.word-item.found .check{display:inline}
+
+.score-bar{text-align:center;font-weight:700;font-size:1rem;color:var(--accent);margin-top:16px}
+
+.completion{display:none;text-align:center;padding:28px;background:var(--success-bg);border-radius:var(--radius);margin-top:20px}
+.completion.show{display:block;animation:popIn 0.5s ease}
+.completion h2{font-family:'Playfair Display',serif;color:var(--success);font-size:1.4rem;margin-bottom:6px}
+@keyframes popIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+
+.timer{text-align:center;font-size:1.4rem;font-family:'Playfair Display',serif;font-weight:700;color:var(--accent);margin-bottom:16px}
+
+@media(max-width:600px){:root{--cell:26px} .word-list{min-width:100%;max-width:100%}}
+</style>
+</head>
+<body>
+
+<h1>Word Search</h1>
+<p class="subtitle">The Fight for Freedom Unit</p>
+<p class="instructions">Click and drag across letters to find the hidden vocabulary words. Words can go horizontally, vertically, or diagonally.</p>
+
+<div class="timer" id="timer">0:00</div>
+
+<div class="game-area">
+  <div class="grid-wrapper">
+    <div class="grid" id="grid"></div>
+  </div>
+  <div class="word-list">
+    <h3>Find These Words</h3>
+    <div id="wordList"></div>
+  </div>
+</div>
+
+<div class="score-bar" id="scoreBar"></div>
+<div class="completion" id="completion">
+  <h2>All Words Found!</h2>
+  <p id="completionMsg"></p>
+</div>
+
+<script>
+const WORDS = [
+  "NAUTICAL","SENTRY","BLOCKADE","REPOSE","CLARION",
+  "LAMENTS","DIREFUL","HINDERED","WEAL","NIGH",
+  "SUFFRAGE","STEALTHILY","ABHORRENCE","DEPORTMENT"
+];
+
+const SIZE = 18;
+const DIRS = [
+  [0,1],[1,0],[1,1],[0,-1],[-1,0],[-1,-1],[1,-1],[-1,1]
+]; // right, down, diag-down-right, left, up, diag-up-left, diag-down-left, diag-up-right
+
+let grid = [];
+let placedWords = []; // {word, cells:[[r,c],...]}
+let foundWords = new Set();
+let selecting = false;
+let selStart = null;
+let selCells = [];
+let timerInterval = null;
+let seconds = 0;
+
+function initGrid() {
+  grid = Array.from({length: SIZE}, () => Array(SIZE).fill(''));
+}
+
+function canPlace(word, r, c, dr, dc) {
+  for (let i = 0; i < word.length; i++) {
+    const nr = r + dr * i;
+    const nc = c + dc * i;
+    if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) return false;
+    if (grid[nr][nc] !== '' && grid[nr][nc] !== word[i]) return false;
+  }
+  return true;
+}
+
+function placeWord(word) {
+  const shuffledDirs = [...DIRS].sort(() => Math.random() - 0.5);
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const dir = shuffledDirs[attempt % shuffledDirs.length];
+    const r = Math.floor(Math.random() * SIZE);
+    const c = Math.floor(Math.random() * SIZE);
+    if (canPlace(word, r, c, dir[0], dir[1])) {
+      const cells = [];
+      for (let i = 0; i < word.length; i++) {
+        grid[r + dir[0]*i][c + dir[1]*i] = word[i];
+        cells.push([r + dir[0]*i, c + dir[1]*i]);
+      }
+      placedWords.push({word, cells});
+      return true;
+    }
+  }
+  return false;
+}
+
+function fillBlanks() {
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for (let r = 0; r < SIZE; r++)
+    for (let c = 0; c < SIZE; c++)
+      if (grid[r][c] === '') grid[r][c] = letters[Math.floor(Math.random() * 26)];
+}
+
+function buildPuzzle() {
+  // Sort longest first for better placement
+  const sorted = [...WORDS].sort((a,b) => b.length - a.length);
+  let success = false;
+  for (let tries = 0; tries < 50; tries++) {
+    initGrid();
+    placedWords = [];
+    let allPlaced = true;
+    for (const w of sorted) {
+      if (!placeWord(w)) { allPlaced = false; break; }
+    }
+    if (allPlaced) { success = true; break; }
+  }
+  if (!success) {
+    // Fallback: place what we can
+    initGrid();
+    placedWords = [];
+    sorted.forEach(w => placeWord(w));
+  }
+  fillBlanks();
+}
+
+function renderGrid() {
+  const gridEl = document.getElementById('grid');
+  gridEl.style.gridTemplateColumns = `repeat(${SIZE}, var(--cell))`;
+  gridEl.innerHTML = '';
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'grid-cell';
+      cell.textContent = grid[r][c];
+      cell.dataset.row = r;
+      cell.dataset.col = c;
+      cell.addEventListener('pointerdown', e => startSelect(r, c, e));
+      cell.addEventListener('pointerenter', () => { if (selecting) updateSelect(r, c); });
+      gridEl.appendChild(cell);
+    }
+  }
+  document.addEventListener('pointerup', endSelect);
+}
+
+function renderWordList() {
+  const list = document.getElementById('wordList');
+  list.innerHTML = '';
+  [...WORDS].sort().forEach(w => {
+    const div = document.createElement('div');
+    div.className = 'word-item';
+    div.id = 'wl-' + w;
+    div.innerHTML = `<span>${w}</span><span class="check">✓</span>`;
+    list.appendChild(div);
+  });
+  updateScore();
+}
+
+function startSelect(r, c, e) {
+  e.preventDefault();
+  selecting = true;
+  selStart = {r, c};
+  selCells = [{r, c}];
+  highlightSelection();
+}
+
+function updateSelect(r, c) {
+  if (!selecting || !selStart) return;
+  // Determine direction from start to current
+  const dr = Math.sign(r - selStart.r);
+  const dc = Math.sign(c - selStart.c);
+  // Must be a straight line (horizontal, vertical, or diagonal)
+  const diffR = Math.abs(r - selStart.r);
+  const diffC = Math.abs(c - selStart.c);
+  if (diffR !== 0 && diffC !== 0 && diffR !== diffC) return; // Not a valid diagonal
+
+  selCells = [];
+  const len = Math.max(diffR, diffC);
+  for (let i = 0; i <= len; i++) {
+    selCells.push({r: selStart.r + dr * i, c: selStart.c + dc * i});
+  }
+  highlightSelection();
+}
+
+function highlightSelection() {
+  document.querySelectorAll('.grid-cell').forEach(cell => cell.classList.remove('selecting'));
+  selCells.forEach(({r, c}) => {
+    const cell = document.querySelector(`.grid-cell[data-row="${r}"][data-col="${c}"]`);
+    if (cell && !cell.classList.contains('found')) cell.classList.add('selecting');
+  });
+}
+
+function endSelect() {
+  if (!selecting) return;
+  selecting = false;
+  // Check if selection matches any word
+  const selectedWord = selCells.map(({r, c}) => grid[r][c]).join('');
+  const match = placedWords.find(pw => {
+    if (pw.word !== selectedWord) return false;
+    if (pw.cells.length !== selCells.length) return false;
+    return pw.cells.every((cell, i) => cell[0] === selCells[i].r && cell[1] === selCells[i].c);
+  });
+
+  if (match && !foundWords.has(match.word)) {
+    foundWords.add(match.word);
+    match.cells.forEach(([r, c]) => {
+      const cell = document.querySelector(`.grid-cell[data-row="${r}"][data-col="${c}"]`);
+      if (cell) { cell.classList.add('found'); cell.classList.remove('selecting'); }
+    });
+    const wl = document.getElementById('wl-' + match.word);
+    if (wl) wl.classList.add('found');
+    updateScore();
+
+    if (foundWords.size === placedWords.length) {
+      clearInterval(timerInterval);
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      document.getElementById('completion').classList.add('show');
+      document.getElementById('completionMsg').textContent =
+        `You found all ${placedWords.length} words in ${mins}:${secs.toString().padStart(2,'0')}!`;
+    }
+  }
+
+  // Clear selection highlights
+  document.querySelectorAll('.grid-cell.selecting').forEach(c => c.classList.remove('selecting'));
+  selCells = [];
+  selStart = null;
+}
+
+function updateScore() {
+  document.getElementById('scoreBar').textContent =
+    `${foundWords.size} of ${placedWords.length} words found`;
+}
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    seconds++;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    document.getElementById('timer').textContent = `${mins}:${secs.toString().padStart(2,'0')}`;
+  }, 1000);
+}
+
+// Init
+buildPuzzle();
+renderGrid();
+renderWordList();
+startTimer();
+</script>
+</body>
+</html>

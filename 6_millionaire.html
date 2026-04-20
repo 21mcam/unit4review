@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Who Wants to Ace the Test? — The Fight for Freedom</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2333;--ink:#e6edf3;--ink-dim:#8b949e;--gold:#daa520;--gold-dim:#b8860b;--gold-bg:rgba(218,165,32,0.1);--blue:#58a6ff;--green:#3fb950;--green-bg:rgba(63,185,80,0.12);--red:#f85149;--red-bg:rgba(248,81,73,0.12);--orange:#d29922;--radius:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 60px}
+
+/* Start screen */
+.start-screen{text-align:center;max-width:500px;animation:fadeIn 0.6s ease}
+.start-screen h1{font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--gold);margin-bottom:8px}
+.start-screen .sub{color:var(--ink-dim);font-size:1rem;margin-bottom:32px}
+.start-btn{background:linear-gradient(135deg,var(--gold-dim),var(--gold));color:var(--bg);border:none;padding:16px 48px;border-radius:30px;font-family:'Source Sans 3',sans-serif;font-size:1.15rem;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 24px rgba(218,165,32,0.3)}
+.start-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(218,165,32,0.4)}
+
+/* Game screen */
+.game-screen{display:none;width:100%;max-width:700px;animation:fadeIn 0.4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* Prize ladder */
+.ladder{display:flex;flex-direction:column-reverse;gap:3px;margin-bottom:24px;padding:16px;background:var(--surface);border-radius:var(--radius);border:1px solid rgba(218,165,32,0.15)}
+.ladder-step{display:flex;justify-content:space-between;padding:6px 14px;border-radius:6px;font-size:0.82rem;font-weight:600;color:var(--ink-dim);transition:all 0.3s}
+.ladder-step.current{background:var(--gold-bg);color:var(--gold);box-shadow:0 0 12px rgba(218,165,32,0.15)}
+.ladder-step.cleared{color:var(--green);opacity:0.6}
+.ladder-step.milestone{border-left:3px solid var(--gold-dim)}
+.ladder-step .prize{color:inherit}
+.ladder-step .level{color:inherit}
+
+/* Question area */
+.question-area{background:var(--surface);border-radius:var(--radius);padding:28px 24px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.06);min-height:120px}
+.q-number{font-size:0.8rem;color:var(--gold);font-weight:700;letter-spacing:0.05em;margin-bottom:8px}
+.q-text{font-size:1.15rem;font-weight:600;line-height:1.5}
+.q-context{font-style:italic;color:var(--ink-dim);font-size:0.92rem;margin-top:8px;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;border-left:3px solid rgba(218,165,32,0.3)}
+
+/* Answers */
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+@media(max-width:500px){.answers{grid-template-columns:1fr}}
+.answer-btn{background:var(--surface2);border:2px solid rgba(255,255,255,0.08);padding:14px 18px;border-radius:var(--radius);font-family:'Source Sans 3',sans-serif;font-size:0.95rem;color:var(--ink);cursor:pointer;transition:all 0.2s;text-align:left;display:flex;gap:10px;align-items:flex-start}
+.answer-btn:hover:not(:disabled){border-color:var(--gold);background:var(--gold-bg)}
+.answer-btn .letter{font-weight:700;color:var(--gold);min-width:20px}
+.answer-btn:disabled{cursor:default}
+.answer-btn.correct{border-color:var(--green);background:var(--green-bg);color:var(--green)}
+.answer-btn.wrong{border-color:var(--red);background:var(--red-bg);color:var(--red)}
+.answer-btn.eliminated{opacity:0.2;pointer-events:none}
+.answer-btn.reveal-correct{border-color:var(--green);background:var(--green-bg);color:var(--green)}
+
+/* Lifelines */
+.lifelines{display:flex;gap:8px;justify-content:center;margin-bottom:20px}
+.lifeline{background:var(--surface2);border:2px solid rgba(255,255,255,0.08);padding:10px 18px;border-radius:24px;font-family:'Source Sans 3',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;color:var(--ink);transition:all 0.2s;display:flex;align-items:center;gap:6px}
+.lifeline:hover:not(.used){border-color:var(--blue);color:var(--blue)}
+.lifeline.used{opacity:0.25;cursor:default;text-decoration:line-through}
+.lifeline .icon{font-size:1.1rem}
+
+/* Walk away */
+.walk-away{text-align:center;margin-top:8px}
+.walk-btn{background:none;border:1px solid rgba(255,255,255,0.1);padding:8px 24px;border-radius:20px;font-family:'Source Sans 3',sans-serif;font-size:0.82rem;color:var(--ink-dim);cursor:pointer;transition:all 0.2s}
+.walk-btn:hover{border-color:var(--orange);color:var(--orange)}
+
+/* Result screen */
+.result-screen{display:none;text-align:center;max-width:500px;animation:fadeIn 0.5s ease}
+.result-screen h2{font-family:'Playfair Display',serif;font-size:2rem;margin-bottom:8px}
+.result-screen h2.won{color:var(--gold)}
+.result-screen h2.lost{color:var(--red)}
+.result-screen h2.walked{color:var(--green)}
+.result-prize{font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;color:var(--gold);margin:20px 0}
+.result-msg{color:var(--ink-dim);font-size:1.05rem;margin-bottom:28px}
+.play-again-btn{background:linear-gradient(135deg,var(--gold-dim),var(--gold));color:var(--bg);border:none;padding:14px 40px;border-radius:30px;font-family:'Source Sans 3',sans-serif;font-size:1rem;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="start-screen" id="startScreen">
+  <h1>Who Wants to Ace the Test?</h1>
+  <p class="sub">The Fight for Freedom Edition<br>15 questions. 3 lifelines. How far can you go?</p>
+  <button class="start-btn" onclick="startGame()">Play</button>
+</div>
+
+<div class="game-screen" id="gameScreen">
+  <div class="ladder" id="ladder"></div>
+  <div class="question-area">
+    <div class="q-number" id="qNumber"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="q-context" id="qContext" style="display:none"></div>
+  </div>
+  <div class="answers" id="answers"></div>
+  <div class="lifelines" id="lifelines">
+    <button class="lifeline" id="ll5050" onclick="useFiftyFifty()"><span class="icon">✂️</span> 50:50</button>
+    <button class="lifeline" id="llHint" onclick="useHint()"><span class="icon">💡</span> Hint</button>
+    <button class="lifeline" id="llSkip" onclick="useSkip()"><span class="icon">⏭️</span> Skip</button>
+  </div>
+  <div class="walk-away">
+    <button class="walk-btn" onclick="walkAway()">Walk Away</button>
+  </div>
+</div>
+
+<div class="result-screen" id="resultScreen">
+  <h2 id="resultTitle"></h2>
+  <div class="result-prize" id="resultPrize"></div>
+  <div class="result-msg" id="resultMsg"></div>
+  <button class="play-again-btn" onclick="location.reload()">Play Again</button>
+</div>
+
+<script>
+const PRIZES = [
+  "100","200","300","500","1,000",
+  "2,000","4,000","8,000","16,000","32,000",
+  "64,000","125,000","250,000","500,000","1,000,000"
+];
+const MILESTONES = [4, 9, 14]; // indices of safe havens (Q5, Q10, Q15)
+
+// Questions ordered easy → hard
+const QUESTIONS = [
+  // Easy (1-5)
+  {q:"Robert Smalls was born into slavery in which state?",a:["South Carolina","Georgia","Virginia","Maryland"],correct:0},
+  {q:"What was the name of the Confederate steamship Smalls stole?",a:["The Planter","The Onward","The Keokuk","The Sumter"],correct:0},
+  {q:"In Uncle Tom's Cabin, what is the name of Eliza's son?",a:["Tom","Harry","George","Henry"],correct:1},
+  {q:"The word 'nautical' relates to what?",a:["Ships and water navigation","Military strategy","Southern agriculture","Railroad construction"],correct:0},
+  {q:"What does the word 'nigh' mean?",a:["Far away","Near","Above","Behind"],correct:1},
+  // Medium (6-10)
+  {q:"What signal did Smalls give to pass the Confederate forts?",a:["A white flag","A cannon blast","Two long and one short whistle pulls","Three short whistle blasts"],correct:2},
+  {q:"In Dunbar's poem, Ethiopia is used as a symbol for what?",a:["Douglass's mother's grief","Douglass's African heritage and ancestry","A specific battle in the Civil War","The country where Douglass was born"],correct:1},
+  {q:"What literary device is used when the poet writes 'grim Oppression held his bloody place'?",a:["Allusion","Onomatopoeia","Personification","Foreshadowing"],correct:2,
+    context:"Lines 17–18 of the poem"},
+  {q:"In My Bondage and My Freedom, why did Douglass work steadily and bring his master full wages?",a:["He enjoyed the work","To remove his master's suspicion","He was afraid of punishment","He wanted a promotion"],correct:1},
+  {q:"What does the word 'repose' most closely mean?",a:["Defiance","Peace","Understanding","Anger"],correct:1,
+    context:"'Once resolved, I felt a certain degree of repose.'"},
+  // Hard (11-15)
+  {q:"What is the effect of the simile 'a smile spread like a sunbeam over his whole face' in Uncle Tom's Cabin?",a:["It highlights Harry's curly hair","It reveals his sleep patterns","It underscores Harry's innocence","It shows his calm personality"],correct:2},
+  {q:"Which phrase correctly completes a past unreal conditional: 'If I had been there, I _____ so upset'?",a:["would be","would have been","will have been","was"],correct:1},
+  {q:"What is the effect of repeating 'lightning' and 'thunder' in lines 29–30 of the poem?",a:["It shows a desire to understand the enemy","It conveys the strength to confront injustice with equal force","It demonstrates a drive to win at any cost","It illustrates determination through hardship"],correct:1,
+    context:"'He dared the lightning in the lightning's track, / And answered thunder with his thunder back.'"},
+  {q:"What kept many enslaved people from escaping, according to Douglass in My Bondage and My Freedom?",a:["Fear of the Underground Railroad","Lack of navigation skills","Strong bonds of affection to family and friends","Loyalty to their masters"],correct:2},
+  {q:"The overall structure of Passage 1 (Escape to Freedom) primarily follows which pattern?",a:["Cause and effect","Compare and contrast","Problem/solution","Chronological order"],correct:3},
+];
+
+let currentQ = 0;
+let usedLifelines = {fifty:false, hint:false, skip:false};
+let answered = false;
+let hintToast = null;
+
+function startGame() {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'block';
+  buildLadder();
+  showQuestion();
+}
+
+function buildLadder() {
+  const ladder = document.getElementById('ladder');
+  ladder.innerHTML = '';
+  for (let i = 0; i < 15; i++) {
+    const step = document.createElement('div');
+    step.className = 'ladder-step' + (MILESTONES.includes(i) ? ' milestone' : '');
+    step.id = 'step-' + i;
+    step.innerHTML = `<span class="level">Q${i+1}</span><span class="prize">$${PRIZES[i]}</span>`;
+    ladder.appendChild(step);
+  }
+  updateLadder();
+}
+
+function updateLadder() {
+  for (let i = 0; i < 15; i++) {
+    const step = document.getElementById('step-' + i);
+    step.classList.remove('current', 'cleared');
+    if (i < currentQ) step.classList.add('cleared');
+    if (i === currentQ) step.classList.add('current');
+  }
+}
+
+function showQuestion() {
+  answered = false;
+  const q = QUESTIONS[currentQ];
+  document.getElementById('qNumber').textContent = `QUESTION ${currentQ + 1} — $${PRIZES[currentQ]}`;
+  document.getElementById('qText').textContent = q.q;
+
+  if (q.context) {
+    document.getElementById('qContext').style.display = 'block';
+    document.getElementById('qContext').textContent = q.context;
+  } else {
+    document.getElementById('qContext').style.display = 'none';
+  }
+
+  const answersEl = document.getElementById('answers');
+  answersEl.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  q.a.forEach((a, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.id = 'ans-' + i;
+    btn.innerHTML = `<span class="letter">${letters[i]}:</span><span>${a}</span>`;
+    btn.addEventListener('click', () => selectAnswer(i));
+    answersEl.appendChild(btn);
+  });
+
+  updateLadder();
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = QUESTIONS[currentQ];
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(b => b.disabled = true);
+
+  const selected = document.getElementById('ans-' + idx);
+
+  if (idx === q.correct) {
+    selected.classList.add('correct');
+    setTimeout(() => {
+      currentQ++;
+      if (currentQ >= 15) {
+        showResult('won');
+      } else {
+        showQuestion();
+      }
+    }, 1200);
+  } else {
+    selected.classList.add('wrong');
+    document.getElementById('ans-' + q.correct).classList.add('reveal-correct');
+    setTimeout(() => showResult('lost'), 2000);
+  }
+}
+
+function getSafeHaven() {
+  let haven = -1;
+  MILESTONES.forEach(m => { if (m < currentQ) haven = m; });
+  return haven;
+}
+
+function showResult(type) {
+  document.getElementById('gameScreen').style.display = 'none';
+  const screen = document.getElementById('resultScreen');
+  screen.style.display = 'block';
+  const title = document.getElementById('resultTitle');
+  const prize = document.getElementById('resultPrize');
+  const msg = document.getElementById('resultMsg');
+
+  if (type === 'won') {
+    title.className = 'won';
+    title.textContent = 'YOU DID IT!';
+    prize.textContent = '$1,000,000';
+    msg.textContent = 'You answered all 15 questions correctly. You clearly know this unit inside and out!';
+  } else if (type === 'walked') {
+    title.className = 'walked';
+    title.textContent = 'Smart Move!';
+    prize.textContent = '$' + PRIZES[currentQ - 1];
+    msg.textContent = `You walked away with $${PRIZES[currentQ - 1]}. Sometimes knowing when to stop is the real win.`;
+  } else {
+    title.className = 'lost';
+    title.textContent = 'Game Over';
+    const haven = getSafeHaven();
+    if (haven >= 0) {
+      prize.textContent = '$' + PRIZES[haven];
+      msg.textContent = `You fell back to your safe haven of $${PRIZES[haven]}. Review the harder material and try again!`;
+    } else {
+      prize.textContent = '$0';
+      msg.textContent = 'You didn\'t reach a safe haven. Study up and give it another shot!';
+    }
+  }
+}
+
+function walkAway() {
+  if (currentQ === 0) return;
+  showResult('walked');
+}
+
+// Lifelines
+function useFiftyFifty() {
+  if (usedLifelines.fifty || answered) return;
+  usedLifelines.fifty = true;
+  document.getElementById('ll5050').classList.add('used');
+
+  const q = QUESTIONS[currentQ];
+  const wrong = [];
+  q.a.forEach((_, i) => { if (i !== q.correct) wrong.push(i); });
+  // Remove 2 wrong answers
+  const shuffled = wrong.sort(() => Math.random() - 0.5);
+  const toRemove = shuffled.slice(0, 2);
+  toRemove.forEach(i => {
+    document.getElementById('ans-' + i).classList.add('eliminated');
+  });
+}
+
+function useHint() {
+  if (usedLifelines.hint || answered) return;
+  usedLifelines.hint = true;
+  document.getElementById('llHint').classList.add('used');
+
+  const q = QUESTIONS[currentQ];
+  // Show a hint based on the correct answer
+  const hints = {
+    0: "Think about the very first passage — where was Smalls from?",
+    1: "This ship's name suggests it was used for planting/farming supplies.",
+    2: "Eliza talked to him about a 'wicked man' coming to take him away.",
+    3: "The Latin root 'nauticus' means 'ship.'",
+    4: "This old English word is only four letters and sounds like a sigh.",
+    5: "Paragraph 7 describes the whistle cord pattern specifically.",
+    6: "The poem uses Ethiopia to represent something larger than one country.",
+    7: "This device gives human qualities to an abstract concept.",
+    8: "He needed his master to think he was content and loyal.",
+    9: "Think about the Latin root meaning 'to pause' — what state is that?",
+    10: "The simile compares a smile to sunlight — what quality does that suggest?",
+    11: "Remember: 'If + had + past participle' needs 'would have + past participle.'",
+    12: "Lightning answers lightning, thunder answers thunder — it's about matching power.",
+    13: "Douglass writes about 'strong cords of affection' holding people back.",
+    14: "The passage moves through Smalls's life from birth to death in order.",
+  };
+
+  const qContext = document.getElementById('qContext');
+  qContext.style.display = 'block';
+  qContext.textContent = '💡 Hint: ' + (hints[currentQ] || 'Think carefully about the passage!');
+}
+
+function useSkip() {
+  if (usedLifelines.skip || answered) return;
+  usedLifelines.skip = true;
+  document.getElementById('llSkip').classList.add('used');
+  currentQ++;
+  if (currentQ >= 15) showResult('won');
+  else showQuestion();
+}
+</script>
+</body>
+</html>
