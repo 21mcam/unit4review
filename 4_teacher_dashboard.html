@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Dashboard — Fight for Freedom Results</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f3f0;
+  --surface: #ffffff;
+  --ink: #1a1a2e;
+  --ink-light: #555568;
+  --accent: #b8860b;
+  --accent-bg: #fdf6e3;
+  --success: #2d6a4f;
+  --success-bg: #d8f3dc;
+  --error: #9b2226;
+  --error-bg: #fde8e8;
+  --border: #e0ddd6;
+  --radius: 12px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;padding:24px 16px 60px;max-width:1000px;margin:0 auto}
+
+h1{font-family:'Playfair Display',serif;font-weight:900;font-size:2rem;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;color:var(--ink-light);font-size:1rem;margin-bottom:28px}
+
+.info-box{background:var(--accent-bg);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;padding:18px 22px;margin-bottom:28px;font-size:0.92rem;line-height:1.7}
+.info-box strong{color:var(--accent)}
+.info-box code{background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:4px;font-size:0.88rem}
+
+.setup-section{background:var(--surface);border-radius:var(--radius);padding:28px;margin-bottom:24px;box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+.setup-section h2{font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:14px}
+.setup-section label{display:block;font-weight:600;font-size:0.85rem;color:var(--ink-light);margin-bottom:4px}
+.url-input{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:0.95rem;background:var(--bg)}
+.url-input:focus{outline:none;border-color:var(--accent)}
+.load-btn{background:var(--accent);color:white;border:none;padding:12px 32px;border-radius:24px;font-family:'Source Sans 3',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;margin-top:12px;transition:all 0.2s}
+.load-btn:hover{background:var(--accent-light);transform:translateY(-1px)}
+
+.tabs{display:flex;gap:4px;margin-bottom:20px}
+.tab-btn{background:var(--border);border:none;padding:10px 24px;border-radius:8px 8px 0 0;font-family:'Source Sans 3',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;color:var(--ink-light);transition:all 0.2s}
+.tab-btn.active{background:var(--surface);color:var(--ink);box-shadow:0 -2px 8px rgba(0,0,0,0.06)}
+
+.tab-content{display:none;background:var(--surface);border-radius:0 var(--radius) var(--radius) var(--radius);padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+.tab-content.active{display:block}
+
+/* Filters */
+.filters{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.filters select{padding:8px 14px;border:2px solid var(--border);border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:0.9rem;background:var(--bg)}
+.filters .count{font-size:0.9rem;color:var(--ink-light);margin-left:auto}
+
+/* Stats cards */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:var(--bg);border-radius:8px;padding:16px;text-align:center}
+.stat-card .stat-num{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900}
+.stat-card .stat-num.good{color:var(--success)}
+.stat-card .stat-num.mid{color:var(--accent)}
+.stat-card .stat-num.low{color:var(--error)}
+.stat-card .stat-label{font-size:0.8rem;color:var(--ink-light);font-weight:600;text-transform:uppercase;letter-spacing:0.04em}
+
+/* Table */
+.results-table{width:100%;border-collapse:collapse;font-size:0.9rem}
+.results-table th{background:var(--bg);padding:10px 12px;text-align:left;font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-light);border-bottom:2px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+.results-table th:hover{color:var(--accent)}
+.results-table td{padding:10px 12px;border-bottom:1px solid var(--border)}
+.results-table tr:hover td{background:var(--accent-bg)}
+.pct-badge{display:inline-block;padding:2px 10px;border-radius:12px;font-weight:700;font-size:0.82rem}
+.pct-badge.high{background:var(--success-bg);color:var(--success)}
+.pct-badge.mid{background:var(--accent-bg);color:var(--accent)}
+.pct-badge.low{background:var(--error-bg);color:var(--error)}
+.missed-cell{font-size:0.82rem;color:var(--error);max-width:280px;word-wrap:break-word}
+
+.empty-state{text-align:center;padding:40px;color:var(--ink-light);font-style:italic}
+
+/* Missed Q analysis */
+.missed-analysis{margin-top:24px}
+.missed-analysis h3{font-size:1rem;font-weight:700;margin-bottom:12px}
+.missed-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:0.88rem}
+.missed-bar .label{width:60px;text-align:right;font-weight:600;color:var(--ink-light)}
+.missed-bar .bar{height:20px;background:var(--error);border-radius:4px;min-width:2px;transition:width 0.4s}
+.missed-bar .bar-bg{flex:1;height:20px;background:var(--bg);border-radius:4px;overflow:hidden}
+.missed-bar .count{font-size:0.82rem;color:var(--ink-light);width:40px}
+</style>
+</head>
+<body>
+
+<h1>Teacher Dashboard</h1>
+<p class="subtitle">The Fight for Freedom — Student Results</p>
+
+<div class="info-box">
+  <strong>How this works:</strong> This dashboard reads directly from your Google Sheet. Enter your published Google Sheet URL below, and it will pull in all student quiz and vocab results. You can also just open the Google Sheet directly to view raw data — this dashboard simply gives you a friendlier view with sorting, filtering, and analytics.
+</div>
+
+<div class="setup-section">
+  <h2>Connect Your Google Sheet</h2>
+  <label>Published Google Sheet URL</label>
+  <p style="font-size:0.85rem;color:var(--ink-light);margin-bottom:8px">In your Google Sheet, go to <strong>File → Share → Publish to web</strong> (as CSV). Paste the URL below.</p>
+  <input type="text" class="url-input" id="sheetUrl" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQVWdAFLSrq5zyvA-s1z8fK9nbnU7viz5vBY3jYIAsi1I-q6lPA5Pyup1-PocKrtdzMCnaZkoakJ8XC/pub?output=csv" placeholder="https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?output=csv">
+  <br>
+  <button class="load-btn" onclick="loadData()">Load Results</button>
+  <div id="loadStatus" style="margin-top:8px;font-size:0.88rem;color:var(--ink-light)"></div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('quiz')">Quiz Results</button>
+  <button class="tab-btn" onclick="switchTab('vocab')">Vocab Results</button>
+</div>
+
+<div class="tab-content active" id="quizTab">
+  <div class="stats-row" id="quizStats"></div>
+  <div class="filters">
+    <select id="quizPeriodFilter" onchange="renderQuizTable()">
+      <option value="all">All Periods</option>
+    </select>
+    <span class="count" id="quizCount"></span>
+  </div>
+  <table class="results-table" id="quizTable">
+    <thead>
+      <tr>
+        <th onclick="sortQuiz('name')">Name ↕</th>
+        <th onclick="sortQuiz('period')">Period ↕</th>
+        <th onclick="sortQuiz('score')">Score ↕</th>
+        <th onclick="sortQuiz('pct')">% ↕</th>
+        <th>Missed Questions</th>
+        <th onclick="sortQuiz('time')">Submitted ↕</th>
+      </tr>
+    </thead>
+    <tbody id="quizBody"></tbody>
+  </table>
+  <div class="missed-analysis" id="quizMissedAnalysis"></div>
+  <div class="empty-state" id="quizEmpty">No quiz results loaded yet. Connect your Google Sheet above.</div>
+</div>
+
+<div class="tab-content" id="vocabTab">
+  <div class="stats-row" id="vocabStats"></div>
+  <div class="filters">
+    <select id="vocabPeriodFilter" onchange="renderVocabTable()">
+      <option value="all">All Periods</option>
+    </select>
+    <span class="count" id="vocabCount"></span>
+  </div>
+  <table class="results-table" id="vocabTable">
+    <thead>
+      <tr>
+        <th onclick="sortVocab('name')">Name ↕</th>
+        <th onclick="sortVocab('period')">Period ↕</th>
+        <th onclick="sortVocab('score')">Score ↕</th>
+        <th onclick="sortVocab('pct')">% ↕</th>
+        <th>Missed Words</th>
+        <th onclick="sortVocab('time')">Submitted ↕</th>
+      </tr>
+    </thead>
+    <tbody id="vocabBody"></tbody>
+  </table>
+  <div class="empty-state" id="vocabEmpty">No vocab results loaded yet. Connect your Google Sheet above.</div>
+</div>
+
+<script>
+let quizData = [];
+let vocabData = [];
+let quizSortKey = 'name';
+let quizSortDir = 1;
+let vocabSortKey = 'name';
+let vocabSortDir = 1;
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(tab + 'Tab').classList.add('active');
+  event.target.classList.add('active');
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim());
+  return lines.slice(1).map(line => {
+    const vals = line.match(/(".*?"|[^",]+|(?<=,)(?=,)|(?<=,)$)/g) || [];
+    const row = {};
+    headers.forEach((h, i) => {
+      row[h] = (vals[i] || '').replace(/^"|"$/g, '').trim();
+    });
+    return row;
+  });
+}
+
+async function loadData() {
+  const url = document.getElementById('sheetUrl').value.trim();
+  const status = document.getElementById('loadStatus');
+  if (!url) { status.textContent = 'Please enter a URL.'; return; }
+
+  status.textContent = 'Loading...';
+
+  try {
+    // Try loading Quiz Results sheet
+    let quizUrl = url;
+    if (quizUrl.includes('pub?')) {
+      quizUrl = quizUrl.replace(/gid=\d+/, 'gid=0');
+      if (!quizUrl.includes('gid=')) quizUrl += '&gid=0';
+    }
+    const quizResp = await fetch(quizUrl);
+    const quizText = await quizResp.text();
+    quizData = parseCSV(quizText);
+
+    // Try Vocab Results (gid=1 typically second sheet)
+    let vocabUrl = quizUrl.replace('gid=0', 'gid=1');
+    try {
+      const vocabResp = await fetch(vocabUrl);
+      const vocabText = await vocabResp.text();
+      vocabData = parseCSV(vocabText);
+    } catch(e) {
+      vocabData = [];
+    }
+
+    status.textContent = `Loaded ${quizData.length} quiz results and ${vocabData.length} vocab results.`;
+    populateFilters();
+    renderQuizTable();
+    renderVocabTable();
+  } catch(e) {
+    status.textContent = 'Error loading data. Make sure the sheet is published as CSV.';
+    console.error(e);
+  }
+}
+
+function populateFilters() {
+  const periods = new Set();
+  quizData.forEach(r => { if(r.Period) periods.add(r.Period); });
+  vocabData.forEach(r => { if(r.Period) periods.add(r.Period); });
+
+  ['quizPeriodFilter', 'vocabPeriodFilter'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="all">All Periods</option>';
+    [...periods].sort().forEach(p => {
+      sel.innerHTML += `<option value="${p}">${p}</option>`;
+    });
+  });
+}
+
+function pctBadge(pctStr) {
+  const n = parseInt(pctStr);
+  const cls = n >= 80 ? 'high' : n >= 60 ? 'mid' : 'low';
+  return `<span class="pct-badge ${cls}">${pctStr}</span>`;
+}
+
+function renderQuizTable() {
+  const filter = document.getElementById('quizPeriodFilter').value;
+  let data = filter === 'all' ? quizData : quizData.filter(r => r.Period === filter);
+
+  // Sort
+  data.sort((a, b) => {
+    let va = a[quizSortKey] || '';
+    let vb = b[quizSortKey] || '';
+    if (quizSortKey === 'score' || quizSortKey === 'pct') {
+      va = parseInt(va) || 0; vb = parseInt(vb) || 0;
+    }
+    if (va < vb) return -quizSortDir;
+    if (va > vb) return quizSortDir;
+    return 0;
+  });
+
+  const body = document.getElementById('quizBody');
+  const empty = document.getElementById('quizEmpty');
+  const table = document.getElementById('quizTable');
+
+  if (data.length === 0) {
+    empty.style.display = 'block';
+    table.style.display = 'none';
+    document.getElementById('quizStats').innerHTML = '';
+    document.getElementById('quizCount').textContent = '';
+    document.getElementById('quizMissedAnalysis').innerHTML = '';
+    return;
+  }
+
+  empty.style.display = 'none';
+  table.style.display = '';
+  document.getElementById('quizCount').textContent = `${data.length} students`;
+
+  // Stats
+  const pcts = data.map(r => parseInt(r.Percent) || 0);
+  const avg = Math.round(pcts.reduce((a,b)=>a+b,0) / pcts.length);
+  const high = Math.max(...pcts);
+  const low = Math.min(...pcts);
+  const passing = pcts.filter(p => p >= 65).length;
+
+  document.getElementById('quizStats').innerHTML = `
+    <div class="stat-card"><div class="stat-num ${avg>=70?'good':avg>=55?'mid':'low'}">${avg}%</div><div class="stat-label">Class Average</div></div>
+    <div class="stat-card"><div class="stat-num good">${high}%</div><div class="stat-label">Highest</div></div>
+    <div class="stat-card"><div class="stat-num ${low>=65?'good':'low'}">${low}%</div><div class="stat-label">Lowest</div></div>
+    <div class="stat-card"><div class="stat-num ${passing/data.length>=0.7?'good':'mid'}">${passing}/${data.length}</div><div class="stat-label">Passing (65%+)</div></div>
+  `;
+
+  // Table rows
+  body.innerHTML = data.map(r => `
+    <tr>
+      <td><strong>${r.Name || '-'}</strong></td>
+      <td>${r.Period || '-'}</td>
+      <td>${r.Score || '-'} / ${r.Total || '-'}</td>
+      <td>${pctBadge(r.Percent || '0%')}</td>
+      <td class="missed-cell">${r['Missed Questions'] === 'None' ? '<span style="color:var(--success)">None!</span>' : (r['Missed Questions'] || '-')}</td>
+      <td style="font-size:0.82rem;color:var(--ink-light)">${r.Timestamp || '-'}</td>
+    </tr>
+  `).join('');
+
+  // Missed question analysis
+  const missedCounts = {};
+  data.forEach(r => {
+    const m = r['Missed Questions'];
+    if (m && m !== 'None') {
+      m.split(',').map(s=>s.trim()).filter(Boolean).forEach(q => {
+        missedCounts[q] = (missedCounts[q] || 0) + 1;
+      });
+    }
+  });
+
+  const sorted = Object.entries(missedCounts).sort((a,b) => b[1] - a[1]).slice(0, 15);
+  if (sorted.length > 0) {
+    const maxCount = sorted[0][1];
+    document.getElementById('quizMissedAnalysis').innerHTML = `
+      <h3>Most Frequently Missed Questions</h3>
+      ${sorted.map(([q, cnt]) => `
+        <div class="missed-bar">
+          <span class="label">${q}</span>
+          <div class="bar-bg"><div class="bar" style="width:${(cnt/maxCount)*100}%"></div></div>
+          <span class="count">${cnt} student${cnt>1?'s':''}</span>
+        </div>
+      `).join('')}
+    `;
+  }
+}
+
+function renderVocabTable() {
+  const filter = document.getElementById('vocabPeriodFilter').value;
+  let data = filter === 'all' ? vocabData : vocabData.filter(r => r.Period === filter);
+
+  data.sort((a, b) => {
+    let va = a[vocabSortKey] || '';
+    let vb = b[vocabSortKey] || '';
+    if (vocabSortKey === 'score' || vocabSortKey === 'pct') {
+      va = parseInt(va) || 0; vb = parseInt(vb) || 0;
+    }
+    if (va < vb) return -vocabSortDir;
+    if (va > vb) return vocabSortDir;
+    return 0;
+  });
+
+  const body = document.getElementById('vocabBody');
+  const empty = document.getElementById('vocabEmpty');
+  const table = document.getElementById('vocabTable');
+
+  if (data.length === 0) {
+    empty.style.display = 'block';
+    table.style.display = 'none';
+    document.getElementById('vocabStats').innerHTML = '';
+    document.getElementById('vocabCount').textContent = '';
+    return;
+  }
+
+  empty.style.display = 'none';
+  table.style.display = '';
+  document.getElementById('vocabCount').textContent = `${data.length} students`;
+
+  const pcts = data.map(r => parseInt(r.Percent) || 0);
+  const avg = Math.round(pcts.reduce((a,b)=>a+b,0) / pcts.length);
+
+  document.getElementById('vocabStats').innerHTML = `
+    <div class="stat-card"><div class="stat-num ${avg>=70?'good':avg>=55?'mid':'low'}">${avg}%</div><div class="stat-label">Class Average</div></div>
+    <div class="stat-card"><div class="stat-num">${data.length}</div><div class="stat-label">Completed</div></div>
+  `;
+
+  body.innerHTML = data.map(r => `
+    <tr>
+      <td><strong>${r.Name || '-'}</strong></td>
+      <td>${r.Period || '-'}</td>
+      <td>${r.Score || '-'} / ${r.Total || '-'}</td>
+      <td>${pctBadge(r.Percent || '0%')}</td>
+      <td class="missed-cell">${r['Missed Words'] === 'None' ? '<span style="color:var(--success)">None!</span>' : (r['Missed Words'] || '-')}</td>
+      <td style="font-size:0.82rem;color:var(--ink-light)">${r.Timestamp || '-'}</td>
+    </tr>
+  `).join('');
+}
+
+function sortQuiz(key) {
+  const map = {name:'Name',period:'Period',score:'Score',pct:'Percent',time:'Timestamp'};
+  const mapped = map[key] || key;
+  if (quizSortKey === mapped) quizSortDir *= -1;
+  else { quizSortKey = mapped; quizSortDir = 1; }
+  renderQuizTable();
+}
+
+function sortVocab(key) {
+  const map = {name:'Name',period:'Period',score:'Score',pct:'Percent',time:'Timestamp'};
+  const mapped = map[key] || key;
+  if (vocabSortKey === mapped) vocabSortDir *= -1;
+  else { vocabSortKey = mapped; vocabSortDir = 1; }
+  renderVocabTable();
+}
+</script>
+</body>
+</html>

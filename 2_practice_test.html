@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practice Test — The Fight for Freedom</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --ink: #1a1a2e;
+  --ink-light: #555568;
+  --accent: #b8860b;
+  --accent-light: #daa520;
+  --accent-bg: #fdf6e3;
+  --success: #2d6a4f;
+  --success-bg: #d8f3dc;
+  --error: #9b2226;
+  --error-bg: #fde8e8;
+  --border: #e0ddd6;
+  --radius: 12px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--ink);line-height:1.7;padding:0 0 80px}
+.header{background:var(--ink);color:white;padding:28px 20px;text-align:center;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,0.2)}
+.header h1{font-family:'Playfair Display',serif;font-size:1.6rem;margin-bottom:4px}
+.header .meta{font-size:0.9rem;opacity:0.8}
+.progress-track{height:4px;background:rgba(255,255,255,0.15);margin-top:12px;border-radius:2px}
+.progress-fill{height:100%;background:var(--accent-light);border-radius:2px;transition:width 0.4s;width:0%}
+.container{max-width:760px;margin:0 auto;padding:24px 16px}
+
+/* Student info form */
+.student-info{background:var(--surface);border-radius:var(--radius);padding:28px;margin-bottom:28px;box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+.student-info h2{font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:16px}
+.form-row{display:flex;gap:12px;flex-wrap:wrap}
+.form-row label{flex:1;min-width:200px}
+.form-row label span{display:block;font-weight:600;font-size:0.85rem;margin-bottom:4px;color:var(--ink-light)}
+.form-row input,.form-row select{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:1rem;background:var(--bg)}
+.form-row input:focus,.form-row select:focus{outline:none;border-color:var(--accent)}
+
+/* Section headers */
+.section-divider{background:var(--ink);color:white;padding:16px 24px;border-radius:var(--radius);margin:32px 0 20px;font-family:'Playfair Display',serif;font-size:1.2rem}
+
+/* Questions */
+.q-card{background:var(--surface);border-radius:var(--radius);padding:24px;margin-bottom:16px;box-shadow:0 1px 8px rgba(0,0,0,0.05);border-left:4px solid var(--border);transition:border-color 0.3s}
+.q-card.answered{border-left-color:var(--accent)}
+.q-card .q-num{font-weight:700;color:var(--accent);font-size:0.85rem;margin-bottom:6px;letter-spacing:0.03em}
+.q-card .q-text{font-size:1.05rem;margin-bottom:4px;font-weight:600}
+.q-card .q-excerpt{font-style:italic;color:var(--ink-light);font-size:0.95rem;margin-bottom:12px;padding:10px 14px;background:var(--bg);border-radius:6px;border-left:3px solid var(--border)}
+.q-card .q-sub{font-weight:700;color:var(--ink);margin:14px 0 6px;font-size:0.95rem}
+.options{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.options label{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:2px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;font-size:0.95rem}
+.options label:hover{border-color:var(--accent-light);background:var(--accent-bg)}
+.options input[type="radio"],.options input[type="checkbox"]{margin-top:4px;accent-color:var(--accent);flex-shrink:0}
+.options label.selected{border-color:var(--accent);background:var(--accent-bg)}
+
+/* Multi-select note */
+.multi-note{font-size:0.82rem;color:var(--ink-light);font-style:italic;margin-top:4px}
+
+/* Written response */
+.written-area{width:100%;min-height:120px;padding:12px 14px;border:2px solid var(--border);border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:1rem;line-height:1.6;resize:vertical;background:var(--bg)}
+.written-area:focus{outline:none;border-color:var(--accent)}
+
+/* Submit */
+.submit-section{text-align:center;margin-top:36px}
+.submit-btn{background:var(--accent);color:white;border:none;padding:16px 48px;border-radius:30px;font-family:'Source Sans 3',sans-serif;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 16px rgba(184,134,11,0.3)}
+.submit-btn:hover{background:var(--accent-light);transform:translateY(-1px)}
+.submit-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+
+/* Results overlay */
+.results-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(26,26,46,0.85);z-index:100;justify-content:center;align-items:center;padding:20px}
+.results-overlay.show{display:flex}
+.results-card{background:var(--surface);border-radius:16px;padding:40px 32px;max-width:560px;width:100%;text-align:center;animation:popIn 0.4s ease;max-height:90vh;overflow-y:auto}
+@keyframes popIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
+.results-card h2{font-family:'Playfair Display',serif;font-size:1.8rem;margin-bottom:8px}
+.score-ring{width:140px;height:140px;border-radius:50%;margin:20px auto;display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:900;font-family:'Playfair Display',serif;border:6px solid var(--border)}
+.score-ring.great{border-color:var(--success);color:var(--success);background:var(--success-bg)}
+.score-ring.ok{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+.score-ring.needs-work{border-color:var(--error);color:var(--error);background:var(--error-bg)}
+.results-card .msg{font-size:1.1rem;margin:16px 0;color:var(--ink-light)}
+.missed-list{text-align:left;margin:20px 0;padding:16px;background:var(--bg);border-radius:8px;max-height:200px;overflow-y:auto}
+.missed-list h3{font-size:0.9rem;font-weight:700;color:var(--error);margin-bottom:8px}
+.missed-list .missed-item{font-size:0.88rem;padding:4px 0;border-bottom:1px solid var(--border);color:var(--ink-light)}
+.missed-list .missed-item:last-child{border:none}
+.close-btn{background:var(--ink);color:white;border:none;padding:12px 36px;border-radius:24px;font-size:1rem;cursor:pointer;margin-top:16px;font-family:'Source Sans 3',sans-serif;font-weight:600}
+.status-msg{margin-top:12px;font-size:0.9rem;color:var(--ink-light)}
+
+/* Sorting table for Q28 */
+.sort-table{width:100%;border-collapse:collapse;margin-top:12px}
+.sort-table th{background:var(--accent-bg);padding:10px;font-size:0.9rem;text-align:center;border:1px solid var(--border)}
+.sort-table td{padding:8px;text-align:center;border:1px solid var(--border);min-width:60px}
+.sort-table select{padding:6px;border:1px solid var(--border);border-radius:4px;font-family:'Source Sans 3',sans-serif;font-size:0.9rem;background:white}
+</style>
+</head>
+<body>
+
+<!-- ========================== -->
+<!-- IMPORTANT: Replace this URL with your deployed Google Apps Script URL -->
+<!-- ========================== -->
+<script>
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyoUDRQx5VkV5hniOx-RgiwvqwBtbz8-Bn2kh6PIIE4UYXSM1pL_Lj2wXYPwlEKZdBHkQ/exec";
+</script>
+
+<div class="header">
+  <h1>The Fight for Freedom — Practice Test</h1>
+  <div class="meta">35 Questions · Use your passages to answer</div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<div class="container" id="mainContainer">
+
+<div class="student-info">
+  <h2>Before You Begin</h2>
+  <div class="form-row">
+    <label><span>Your Name (First &amp; Last)</span><input type="text" id="studentName" placeholder="e.g. John Smith"></label>
+    <label><span>Class Period</span>
+      <select id="studentPeriod">
+        <option value="">Select...</option>
+        <option>Period 1</option><option>Period 2</option><option>Period 3</option>
+        <option>Period 4</option><option>Period 5</option><option>Period 6</option>
+        <option>Period 7</option><option>Period 8</option>
+      </select>
+    </label>
+  </div>
+</div>
+
+<div id="questionsContainer"></div>
+
+<div class="submit-section">
+  <button class="submit-btn" id="submitBtn" onclick="submitTest()">Submit Test</button>
+</div>
+
+</div>
+
+<div class="results-overlay" id="resultsOverlay">
+  <div class="results-card">
+    <h2>Your Results</h2>
+    <div class="score-ring" id="scoreRing">-</div>
+    <div class="msg" id="resultsMsg"></div>
+    <div class="missed-list" id="missedList" style="display:none">
+      <h3>Questions to Review:</h3>
+      <div id="missedItems"></div>
+    </div>
+    <div class="status-msg" id="statusMsg"></div>
+    <button class="close-btn" onclick="document.getElementById('resultsOverlay').classList.remove('show')">Close</button>
+  </div>
+</div>
+
+<script>
+// ============================
+// QUESTION DATA
+// ============================
+const questions = [
+  // SECTION 1: Escape to Freedom & Uncle Tom's Cabin (Q1-15)
+  {id:1,section:"Section 1: Escape to Freedom & Uncle Tom's Cabin",type:"mc",
+    text:"What is the main reason the author wrote Passage 1 (Escape to Freedom)?",
+    choices:["To demonstrate the intelligence of Northern military leaders","To share the true story of a courageous figure from American history","To amuse readers with a made-up story set during the Civil War","To describe the most common way enslaved people fled the South"],
+    answer:1},
+  {id:2,type:"mc",
+    text:"What do the following sentences from paragraph 2 suggest about the author\u2019s view of Smalls?",
+    excerpt:"\u201COver time, he became an excellent sailor and navigator. He could steer any ship through narrow waterways without running into rocks.\u201D",
+    choices:["She is impressed by his abilities.","She is jealous of his talent on the water.","She suspects he overstated parts of his background.","She feels he should have tried to flee earlier."],
+    answer:0},
+  {id:3,type:"twopart",
+    textA:"What role does paragraph 2 of Passage 1 play in developing the account of Smalls\u2019s escape?",
+    choicesA:["It reveals how he gained the knowledge to operate a ship.","It identifies the specific city where he was born.","It explains the reason his master sent him to work for others.","It tells the reader how old he was when he started laboring."],
+    answerA:0,
+    textB:"Which detail from paragraph 2 most clearly supports your answer to Part A?",
+    choicesB:["\u201CSmalls was born into slavery on April 5, 1839, in Beaufort, South Carolina.\u201D","\u201CBy the time he was 12 years old, his master began to hire him out . . .\u201D","\u201COver time, he became an excellent sailor and navigator.\u201D","\u201CHe could steer any ship through narrow waterways . . .\u201D"],
+    answerB:2},
+  {id:4,type:"mc",
+    text:"The word nautical originates from the Latin nauticus, meaning \u201Cship.\u201D Which definition best fits the way nautical is used in paragraph 2 of Passage 1?",
+    choices:["Explaining how to construct a vessel fit for the sea","Designed for steering and guiding boats on waterways","Intended to teach someone to become a ship\u2019s captain","Recording the number of vessels docked at each port"],
+    answer:1},
+  {id:5,type:"mc",
+    text:"According to paragraph 7, what allowed the Planter to get past both forts without being stopped?",
+    choices:["Smalls was familiar with the correct signals to use.","Smalls had personal connections with the harbor sentries.","Smalls positioned the ship beyond the reach of the fort\u2019s cannons.","Smalls pushed the vessel to top speed during the final stretch."],
+    answer:0},
+  {id:6,type:"multi",
+    text:"Reread paragraph 9 of Passage 1. Identify two words that help create the author\u2019s tone of respect toward Smalls. (Select two.)",
+    choices:["deed","heroic","severe","awarded","money"],
+    answer:[1,3]},
+  {id:7,type:"twopart",
+    textA:"How is paragraph 11 of Passage 1 organized?",
+    choicesA:["Compare and contrast","Chronological order","Problem/solution","Cause and effect"],
+    answerA:3,
+    textB:"Which detail from paragraph 11 best supports your answer?",
+    choicesB:["\u201CSmalls\u2019s actions introduced him to important men.\u201D","\u201CIn a meeting with President Abraham Lincoln . . .\u201D","\u201C. . . African Americans could make an important contribution . . .\u201D","\u201CSmalls helped raise 5,000 volunteers . . .\u201D"],
+    answerB:0},
+  {id:8,type:"mc",
+    text:"What organizational pattern does Passage 1 primarily follow?",
+    choices:["Cause and effect","Problem/solution","Chronological order","Compare and contrast"],
+    answer:2},
+  {id:9,type:"twopart",
+    textA:"What central message does Passage 2 (Uncle Tom\u2019s Cabin) convey?",
+    choicesA:["During stressful times, having a strong support system is essential.","The drive to protect someone you love can inspire extraordinary courage.","Truly compassionate people demonstrate empathy through deeds, not just words.","Many people are ultimately brought down by their own selfishness."],
+    answerA:1,
+    textB:"Which excerpt from Passage 2 provides the strongest support for the answer to Part A?",
+    choicesB:["\u201CThe fact is, Emily, the thing\u2019s done; the bills of sale are already signed . . .\u201D (paragraph 1)","\u201C. . . They shall see, at any rate, that their mistress can feel for and with them . . .\u201D (paragraph 6)","\u201COh, missis! dear missis! don\u2019t think me ungrateful . . .\u201D (paragraph 12)","\u201C. . . A wicked man was coming to take little Harry away . . . but mother won\u2019t let him . . .\u201D (paragraph 16)"],
+    answerB:3},
+  {id:10,type:"mc",
+    text:"The simile used to describe Haley in paragraph 3 of Passage 2 suggests that he is\u2014",
+    excerpt:"\u201CWhy, not a cruel man, exactly, but a man of leather,\u2014a man alive to nothing but trade and profit,\u2014cool, and unhesitating, and unrelenting, as death and the grave.\u201D",
+    choices:["Willing to do whatever it takes to earn a profit","Respected for making shrewd business choices","Frequently misunderstood by those around him","Suffering from poor physical health"],
+    answer:0},
+  {id:11,type:"mc",
+    text:"What impact does the simile in paragraph 9 of Passage 2 have on the passage?",
+    excerpt:"\u201C. . . and a smile spread like a sunbeam over his whole face.\u201D",
+    choices:["It draws attention to Harry\u2019s curly hair.","It underscores Harry\u2019s purity and innocence.","It reveals information about Harry\u2019s sleep patterns.","It shows that Harry has a naturally relaxed temperament."],
+    answer:1},
+  {id:12,type:"mc",
+    text:"What does the figurative language in paragraph 11 of Passage 2 convey?",
+    excerpt:"\u201CNo tear dropped over that pillow; in such straits as these, the heart has no tears to give; it drops only blood, bleeding itself away in silence.\u201D",
+    choices:["Eliza considers crying to be a weakness.","Eliza\u2019s heart could be harmed if she allowed herself to weep.","Eliza does not want to disturb the quiet by crying aloud.","Eliza\u2019s circumstances are so dire that she is beyond the point of tears."],
+    answer:3},
+  {id:13,type:"mc",
+    text:"What conclusion can be drawn about the setting of Passage 2?",
+    choices:["The household places great importance on family bonds.","The community is made up of many different types of people.","Slavery is on the verge of being outlawed in the characters\u2019 state.","Enslaved individuals are regarded as property in that society."],
+    answer:3},
+  {id:14,type:"multi",
+    text:"Select two statements that best explain how the historical subject matter is handled differently in Passages 1 and 2. (Select two.)",
+    choices:["Passage 1 presents a nonfiction account of real events, while Passage 2 offers a fictional portrayal of the era.","Passage 1 focuses on the impact of war on families, while Passage 2 explores the causes of the conflict between states.","Passage 1 details a particular battle of the Civil War, while Passage 2 describes how enslaved people gained their freedom.","Passage 1 shows how one man\u2019s deeds aided the Union cause, while Passage 2 gives readers a window into a character\u2019s thoughts.","Passage 1 demonstrates the power of strangers working together, while Passage 2 contrasts that with the importance of family."],
+    answer:[0,3]},
+  {id:15,type:"written",
+    text:"How are the central ideas of Passage 1 and Passage 2 similar and different? Use specific examples from both texts to support your answer."},
+
+  // SECTION 2: Frederick Douglass poem & My Bondage (Q16-29)
+  {id:16,section:"Section 2: Frederick Douglass (Poem) & My Bondage and My Freedom",type:"multi",
+    text:"Which two lines from the poem convey a mood of silent mourning? (Select two.)",
+    choices:["\u201CA hush is over all the teeming lists,\u201D (line 1)","\u201CAnd there is pause, a breath-space in the strife;\u201D (line 2)","\u201CHe was her champion thro\u2019 direful years,\u201D (line 9)","\u201CAnd gloated o\u2019er the mis\u2019ries of a race.\u201D (line 18)","\u201CAnd he was no soft-tongued apologist;\u201D (line 19)"],
+    answer:[0,1]},
+  {id:17,type:"mc",
+    text:"In lines 5\u20138, the poet references Ethiopia. What is the importance of this allusion?",
+    choices:["Ethiopia symbolizes the grief felt by Douglass\u2019s own mother.","Many advocates for freedom originally came from Ethiopia.","Numerous enslaved people descended from Ethiopian nobility.","Ethiopia stands as a symbol for Douglass\u2019s African heritage and ancestry."],
+    answer:3},
+  {id:18,type:"mc",
+    text:"How does the poet use the bow-and-arrow imagery in lines 15\u201316?",
+    excerpt:"\u201CFor her the strong bow of his power he strung, / And sent his arrows to the very den\u201D",
+    choices:["As a hint about a theme of military victory","As a reference to a specific Civil War engagement","As a flashback to Douglass\u2019s experience on the front lines","As a metaphor for Douglass\u2019s fight against the institution of slavery"],
+    answer:3},
+  {id:19,type:"twopart",
+    textA:"Reread lines 13\u201318. Which literary technique does the poet employ?",
+    choicesA:["Allusion","Foreshadowing","Onomatopoeia","Personification"],
+    answerA:3,
+    textB:"What effect does this literary technique have on the poem?",
+    choicesB:["It references a significant historical event in Ethiopia.","It produces a sound effect that mimics the clarion.","It implies that Oppression is a force that can be challenged and defeated.","It hints at future racial discrimination and societal inequality."],
+    answerB:2},
+  {id:20,type:"mc",
+    text:"What is the effect of repeating the words lightning and thunder in lines 29\u201330?",
+    excerpt:"\u201CHe dared the lightning in the lightning\u2019s track, / And answered thunder with his thunder back.\u201D",
+    choices:["It conveys an unstoppable drive to win at any cost.","It reveals a wish to understand the opposing side\u2019s perspective.","It implies the strength to confront injustice with an equally powerful response.","It illustrates the determination to press forward even through hardship."],
+    answer:2},
+  {id:21,type:"twopart",
+    textA:"Reread lines 55\u201362. What effect does the imagery in this final stanza have?",
+    choicesA:["It offers a glimpse into the accomplishments that shaped Douglass\u2019s life.","It stresses how Douglass\u2019s words and influence persist beyond his death.","It presents an imaginative comparison of different perspectives on Douglass.","It establishes a rhythmic pattern that amplifies the poem\u2019s emotional impact."],
+    answerA:1,
+    textB:"Which line most directly supports your answer to Part A?",
+    choicesB:["\u201COh, Douglass, thou hast passed beyond the shore,\u201D (line 55)","\u201CBut still thy voice is ringing o\u2019er the gale!\u201D (line 56)","\u201CShe will not fail, she heeds thy stirring cry,\u201D (line 59)","\u201CAnd, rising from beneath the chast\u2019ning rod,\u201D (line 61)"],
+    answerB:1},
+  {id:22,type:"twopart",
+    textA:"What is the overarching theme of the poem?",
+    choicesA:["Douglass\u2019s devotion to his homeland and people drove his passionate work.","Douglass\u2019s bravery allowed him to overcome every opponent.","Douglass\u2019s legacy will continue to motivate others to stand against injustice long after his passing.","Douglass\u2019s truthfulness gave his people strength during their darkest hours."],
+    answerA:2,
+    textB:"Which line provides the best evidence for your answer?",
+    choicesB:["\u201CShe loved him with a mother\u2019s deepest love.\u201D (line 8)","\u201CTo sin and crime he gave their proper hue,\u201D (line 23)","\u201CStill in the foremost rank he waged the fray;\u201D (line 46)","\u201CThou\u2019st taught thy race how high her hopes may soar,\u201D (line 57)"],
+    answerB:3},
+  {id:23,type:"mc",
+    text:"Why did Frederick Douglass write Passage 2 (from My Bondage and My Freedom)?",
+    choices:["To motivate others by sharing the true account of his flight from slavery","To teach his friends about strategies for escaping Baltimore","To voice his frustration about the meager pay he earned","To detail the operations of the Underground Railroad"],
+    answer:0},
+  {id:24,type:"mc",
+    text:"Which sentence from paragraph 1 of Passage 2 best illustrates a cause-and-effect relationship?",
+    choices:["\u201CI was a favorite with Mr. B., and, young as I was, I had served as his foreman on the float stage, at calking.\u201D","\u201CHe was very much pleased; he took the money, commended me, and told me I might have done the same thing the week before.\u201D","\u201CMy object, therefore, in working steadily, was to remove suspicion, and in this I succeeded admirably.\u201D","\u201CI told him I would, for one of the uses to which I meant to put it, was to pay my fare on the underground railroad.\u201D"],
+    answer:2},
+  {id:25,type:"mc",
+    text:"Which word, if it replaced \u201Chindered,\u201D would give the sentence a more negative tone?",
+    excerpt:"\u201CThe daughter is hindered from escaping, by the love she bears her mother . . .\u201D",
+    choices:["Delayed","Hampered","Prohibited","Discouraged"],
+    answer:2},
+  {id:26,type:"mc",
+    text:"The word repose comes from Latin roots meaning \u201Cto pause.\u201D Which word could best replace repose while keeping a similar meaning?",
+    excerpt:"\u201COnce resolved, I felt a certain degree of repose . . .\u201D",
+    choices:["Peace","Stillness","Defiance","Understanding"],
+    answer:0},
+  {id:27,type:"mc",
+    text:"Which statement best captures the main idea of Passage 2?",
+    choices:["Douglass carefully planned his escape and felt sorrow only about leaving behind his close friends.","Douglass secured work to fund his escape and longed to bring his family along.","Douglass fled slavery through the Underground Railroad and was deeply thankful for the help he received.","Douglass acted loyal to his master while remaining under constant suspicion."],
+    answer:0},
+  {id:28,type:"sorting",
+    text:"Determine whether each description applies to Passage 1 (the poem) or Passage 2 (the autobiography).",
+    items:[
+      {label:"Portrays Douglass as a legendary and heroic figure",answer:"Passage 1"},
+      {label:"Centers on Douglass\u2019s resolve to achieve freedom",answer:"Passage 2"},
+      {label:"Narrates the events leading up to Douglass\u2019s escape",answer:"Passage 2"},
+      {label:"Details the labor Douglass performed before gaining freedom",answer:"Passage 2"},
+      {label:"Employs vivid, poetic language to capture Douglass\u2019s impact",answer:"Passage 1"}
+    ]},
+  {id:29,type:"written",
+    text:"How are the purposes of Passage 1 (the poem) and Passage 2 (the autobiography) alike and different? Use specific examples from both texts to support your response."},
+
+  // SECTION 3: Language Conventions (Q30-35)
+  {id:30,section:"Section 3: Language Conventions",type:"mc",
+    text:"Choose the correction for the underlined portion:",
+    excerpt:"\u201CIf I had been a woman living during those years, I would be so disappointed.\u201D",
+    choices:["have been","has been","being","correct as is"],
+    answer:0},
+  {id:31,type:"mc",
+    text:"Choose the correction for the underlined portion:",
+    excerpt:"\u201C. . . suffragists held protests, marched in the streets, and had been arrested and beaten for supporting these efforts.\u201D",
+    choices:["is arrested","was arrested","were arrested","correct as is"],
+    answer:2},
+  {id:32,type:"mc",
+    text:"Choose the correction for the underlined portion:",
+    excerpt:"\u201CIf Stanton and Anthony had not been such brave soldiers, our country would be turned out very differently.\u201D",
+    choices:["would","would of","would have","correct as is"],
+    answer:2},
+  {id:33,type:"mc",
+    text:"Choose the correction for the underlined portion:",
+    excerpt:"\u201CAdditionally, voting restrictions were enacted of ensuring that very few women or people of color could actually exercise their rights.\u201D",
+    choices:["to be ensuring","to ensure","for ensure","correct as is"],
+    answer:1},
+  {id:34,type:"mc",
+    text:"Choose the correction for the underlined portion:",
+    excerpt:"\u201C. . . granted the right to vote to people of all genders and races by prohibiting discrimination in American elections.\u201D",
+    choices:["of vote","of voting","to voting","correct as is"],
+    answer:3},
+  {id:35,type:"mc",
+    text:"Choose the correction for the underlined portion:",
+    excerpt:"\u201CWhat do you think you did during those years?\u201D",
+    choices:["would have done","would do","do","correct as is"],
+    answer:0},
+];
+
+// ============================
+// RENDER QUESTIONS
+// ============================
+const container = document.getElementById('questionsContainer');
+let currentSection = '';
+const totalScored = questions.filter(q => q.type !== 'written').length;
+
+questions.forEach((q, idx) => {
+  // Section divider
+  if (q.section && q.section !== currentSection) {
+    currentSection = q.section;
+    const div = document.createElement('div');
+    div.className = 'section-divider';
+    div.textContent = q.section;
+    container.appendChild(div);
+  }
+
+  const card = document.createElement('div');
+  card.className = 'q-card';
+  card.id = 'q' + q.id;
+  let html = `<div class="q-num">QUESTION ${q.id}</div>`;
+  html += `<div class="q-text">${q.text}</div>`;
+  if (q.excerpt) html += `<div class="q-excerpt">${q.excerpt}</div>`;
+
+  if (q.type === 'mc') {
+    html += `<div class="options">`;
+    q.choices.forEach((c, ci) => {
+      html += `<label onclick="selectOption(this)"><input type="radio" name="q${q.id}" value="${ci}"> ${c}</label>`;
+    });
+    html += `</div>`;
+  } else if (q.type === 'multi') {
+    html += `<div class="options">`;
+    q.choices.forEach((c, ci) => {
+      html += `<label onclick="selectMulti(this)"><input type="checkbox" name="q${q.id}" value="${ci}"> ${c}</label>`;
+    });
+    html += `</div><div class="multi-note">Select exactly two answers.</div>`;
+  } else if (q.type === 'twopart') {
+    html += `<div class="q-sub">Part A</div><div class="q-text" style="font-weight:400;font-size:0.95rem">${q.textA}</div>`;
+    html += `<div class="options">`;
+    q.choicesA.forEach((c, ci) => {
+      html += `<label onclick="selectOption(this)"><input type="radio" name="q${q.id}a" value="${ci}"> ${c}</label>`;
+    });
+    html += `</div>`;
+    html += `<div class="q-sub">Part B</div><div class="q-text" style="font-weight:400;font-size:0.95rem">${q.textB}</div>`;
+    html += `<div class="options">`;
+    q.choicesB.forEach((c, ci) => {
+      html += `<label onclick="selectOption(this)"><input type="radio" name="q${q.id}b" value="${ci}"> ${c}</label>`;
+    });
+    html += `</div>`;
+  } else if (q.type === 'sorting') {
+    html += `<table class="sort-table"><tr><th style="width:55%">Description</th><th>Passage</th></tr>`;
+    q.items.forEach((item, ii) => {
+      html += `<tr><td style="text-align:left;font-size:0.9rem">${item.label}</td>`;
+      html += `<td><select name="q${q.id}_${ii}" onchange="markAnswered(${q.id})"><option value="">--</option><option>Passage 1</option><option>Passage 2</option></select></td></tr>`;
+    });
+    html += `</table>`;
+  } else if (q.type === 'written') {
+    html += `<textarea class="written-area" name="q${q.id}" placeholder="Write your response here..." oninput="markAnswered(${q.id})"></textarea>`;
+    html += `<div class="multi-note">Written responses are not auto-scored. Your teacher will review these.</div>`;
+  }
+
+  card.innerHTML = html;
+  container.appendChild(card);
+});
+
+function selectOption(label) {
+  const options = label.closest('.options');
+  options.querySelectorAll('label').forEach(l => l.classList.remove('selected'));
+  label.classList.add('selected');
+  label.querySelector('input').checked = true;
+  // Mark card
+  const card = label.closest('.q-card');
+  card.classList.add('answered');
+  updateProgress();
+}
+
+function selectMulti(label) {
+  label.classList.toggle('selected');
+  const inp = label.querySelector('input');
+  inp.checked = !inp.checked;
+  label.closest('.q-card').classList.add('answered');
+  updateProgress();
+}
+
+function markAnswered(qid) {
+  document.getElementById('q'+qid).classList.add('answered');
+  updateProgress();
+}
+
+function updateProgress() {
+  const answered = document.querySelectorAll('.q-card.answered').length;
+  const pct = Math.round((answered / questions.length) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+// ============================
+// SCORING & SUBMISSION
+// ============================
+function submitTest() {
+  const name = document.getElementById('studentName').value.trim();
+  const period = document.getElementById('studentPeriod').value;
+
+  if (!name) { alert('Please enter your name before submitting.'); return; }
+  if (!period) { alert('Please select your class period.'); return; }
+
+  let score = 0;
+  const missed = [];
+
+  questions.forEach(q => {
+    if (q.type === 'written') return; // Not scored
+
+    if (q.type === 'mc') {
+      const sel = document.querySelector(`input[name="q${q.id}"]:checked`);
+      if (sel && parseInt(sel.value) === q.answer) { score++; }
+      else { missed.push(`Q${q.id}`); }
+    } else if (q.type === 'multi') {
+      const checked = Array.from(document.querySelectorAll(`input[name="q${q.id}"]:checked`)).map(i=>parseInt(i.value));
+      const correct = q.answer.slice().sort();
+      checked.sort();
+      if (JSON.stringify(checked) === JSON.stringify(correct)) { score++; }
+      else { missed.push(`Q${q.id}`); }
+    } else if (q.type === 'twopart') {
+      const selA = document.querySelector(`input[name="q${q.id}a"]:checked`);
+      const selB = document.querySelector(`input[name="q${q.id}b"]:checked`);
+      let partScore = 0;
+      if (selA && parseInt(selA.value) === q.answerA) partScore++;
+      else missed.push(`Q${q.id}A`);
+      if (selB && parseInt(selB.value) === q.answerB) partScore++;
+      else missed.push(`Q${q.id}B`);
+      score += partScore;
+    } else if (q.type === 'sorting') {
+      let allCorrect = true;
+      q.items.forEach((item, ii) => {
+        const sel = document.querySelector(`select[name="q${q.id}_${ii}"]`);
+        if (!sel || sel.value !== item.answer) allCorrect = false;
+      });
+      if (allCorrect) score++;
+      else missed.push(`Q${q.id}`);
+    }
+  });
+
+  // Calculate total possible (two-part questions count as 2 each)
+  let totalPossible = 0;
+  questions.forEach(q => {
+    if (q.type === 'written') return;
+    if (q.type === 'twopart') totalPossible += 2;
+    else totalPossible += 1;
+  });
+
+  const pct = Math.round((score / totalPossible) * 100);
+
+  // Show results
+  const ring = document.getElementById('scoreRing');
+  ring.textContent = pct + '%';
+  ring.className = 'score-ring ' + (pct >= 80 ? 'great' : pct >= 60 ? 'ok' : 'needs-work');
+
+  const msg = document.getElementById('resultsMsg');
+  msg.textContent = `You scored ${score} out of ${totalPossible} (${pct}%)`;
+
+  if (missed.length > 0) {
+    document.getElementById('missedList').style.display = 'block';
+    document.getElementById('missedItems').innerHTML = missed.map(m => `<div class="missed-item">${m}</div>`).join('');
+  }
+
+  document.getElementById('resultsOverlay').classList.add('show');
+
+  // Send to Google Sheets
+  const statusMsg = document.getElementById('statusMsg');
+  if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE") {
+    statusMsg.textContent = 'Saving your results...';
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        type: 'quiz',
+        name: name,
+        period: period,
+        score: score,
+        total: totalPossible,
+        missed: missed.join(', ') || 'None'
+      })
+    }).then(() => {
+      statusMsg.textContent = 'Results saved successfully!';
+    }).catch(() => {
+      statusMsg.textContent = 'Could not save results. Show this screen to your teacher.';
+    });
+  } else {
+    statusMsg.textContent = 'Results not saved (no tracking URL configured).';
+  }
+
+  document.getElementById('submitBtn').disabled = true;
+}
+</script>
+</body>
+</html>

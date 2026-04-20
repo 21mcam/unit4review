@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grammar Review — The Fight for Freedom</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --ink: #1a1a2e;
+  --ink-light: #555568;
+  --accent: #b8860b;
+  --accent-light: #daa520;
+  --accent-bg: #fdf6e3;
+  --success: #2d6a4f;
+  --success-bg: #d8f3dc;
+  --error: #9b2226;
+  --error-bg: #fde8e8;
+  --border: #e0ddd6;
+  --radius: 12px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Source Sans 3', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.7;
+  padding: 24px 16px 80px;
+  max-width: 780px;
+  margin: 0 auto;
+}
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+.subtitle {
+  text-align: center;
+  color: var(--ink-light);
+  font-size: 1.05rem;
+  margin-bottom: 32px;
+}
+.concept-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 36px;
+}
+.concept-nav button {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  padding: 10px 18px;
+  border-radius: 24px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--ink);
+}
+.concept-nav button:hover { border-color: var(--accent); color: var(--accent); }
+.concept-nav button.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.concept-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+.concept-card.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.concept-card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+.concept-card .tag {
+  display: inline-block;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 20px;
+  margin-bottom: 18px;
+  letter-spacing: 0.03em;
+}
+.concept-card p { margin-bottom: 14px; color: var(--ink); }
+.rule-box {
+  background: var(--accent-bg);
+  border-left: 4px solid var(--accent);
+  padding: 16px 20px;
+  border-radius: 0 8px 8px 0;
+  margin: 16px 0;
+}
+.rule-box strong { color: var(--accent); }
+.example-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 14px 0;
+}
+@media (max-width: 560px) { .example-row { grid-template-columns: 1fr; } }
+.ex-wrong, .ex-right {
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+.ex-wrong {
+  background: var(--error-bg);
+  border: 1px solid #f5c6c6;
+}
+.ex-wrong::before { content: "✗ "; color: var(--error); font-weight: 700; }
+.ex-right {
+  background: var(--success-bg);
+  border: 1px solid #b7e4c7;
+}
+.ex-right::before { content: "✓ "; color: var(--success); font-weight: 700; }
+.try-it {
+  background: #f0eee9;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+}
+.try-it h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--accent);
+}
+.try-it .prompt {
+  font-style: italic;
+  margin-bottom: 12px;
+  color: var(--ink-light);
+}
+.try-it .options { display: flex; flex-direction: column; gap: 6px; }
+.try-it .options button {
+  text-align: left;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.try-it .options button:hover { border-color: var(--accent-light); }
+.try-it .options button.selected-correct {
+  border-color: var(--success);
+  background: var(--success-bg);
+}
+.try-it .options button.selected-wrong {
+  border-color: var(--error);
+  background: var(--error-bg);
+}
+.try-it .options button.reveal-correct {
+  border-color: var(--success);
+  background: var(--success-bg);
+}
+.try-it .feedback {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  display: none;
+}
+.try-it .feedback.show { display: block; }
+.try-it .feedback.correct { background: var(--success-bg); color: var(--success); }
+.try-it .feedback.wrong { background: var(--error-bg); color: var(--error); }
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 4px;
+  background: var(--accent);
+  transition: width 0.4s;
+  z-index: 100;
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar" style="width:0%"></div>
+
+<h1>Grammar Review</h1>
+<p class="subtitle">The Fight for Freedom Unit — Key Concepts from the Test</p>
+
+<div class="concept-nav" id="nav">
+  <button class="active" onclick="showConcept(0)">Conditional Verbs</button>
+  <button onclick="showConcept(1)">Parallel Structure</button>
+  <button onclick="showConcept(2)">Infinitives of Purpose</button>
+  <button onclick="showConcept(3)">"Would Have" vs. "Would Of"</button>
+</div>
+
+<div class="concept-card active" id="card0">
+  <h2>Past Unreal Conditional</h2>
+  <span class="tag">TEST QUESTIONS 30, 32, 35</span>
+  <p>The <strong>past unreal conditional</strong> (also called the <strong>third conditional</strong>) describes situations that did <em>not</em> happen in the past. It asks: "What would have happened if things had been different?"</p>
+
+  <div class="rule-box">
+    <strong>The Formula:</strong><br>
+    If + <em>had</em> + past participle → <em>would have</em> + past participle<br><br>
+    <strong>Example:</strong> If I <em>had studied</em>, I <em>would have passed</em> the test.
+  </div>
+
+  <p>The most common mistake is using <strong>"would be"</strong> or <strong>"would + base verb"</strong> in the result clause instead of <strong>"would have + past participle."</strong></p>
+
+  <div class="example-row">
+    <div class="ex-wrong">If I had been there, I <strong>would be</strong> so upset.</div>
+    <div class="ex-right">If I had been there, I <strong>would have been</strong> so upset.</div>
+  </div>
+  <div class="example-row">
+    <div class="ex-wrong">If she had not fought, the country <strong>would be</strong> turned out differently.</div>
+    <div class="ex-right">If she had not fought, the country <strong>would have</strong> turned out differently.</div>
+  </div>
+
+  <p>This also applies to hypothetical questions about the past:</p>
+  <div class="example-row">
+    <div class="ex-wrong">What do you think you <strong>did</strong> during those years?</div>
+    <div class="ex-right">What do you think you <strong>would have done</strong> during those years?</div>
+  </div>
+
+  <div class="try-it">
+    <h3>Try It!</h3>
+    <p class="prompt">Choose the correct version: "If the soldiers had not arrived, the battle _____ lost."</p>
+    <div class="options">
+      <button onclick="checkAnswer(this, false)">would be</button>
+      <button onclick="checkAnswer(this, true)">would have been</button>
+      <button onclick="checkAnswer(this, false)">will have been</button>
+      <button onclick="checkAnswer(this, false)">was</button>
+    </div>
+    <div class="feedback" id="fb0">
+      <span class="msg"></span>
+    </div>
+  </div>
+
+  <div class="try-it" style="margin-top:14px">
+    <h3>Try It!</h3>
+    <p class="prompt">"If Frederick Douglass had not escaped, he _____ a free man."</p>
+    <div class="options">
+      <button onclick="checkAnswer(this, false)">would never be</button>
+      <button onclick="checkAnswer(this, false)">will never have been</button>
+      <button onclick="checkAnswer(this, true)">would never have become</button>
+      <button onclick="checkAnswer(this, false)">never became</button>
+    </div>
+    <div class="feedback"><span class="msg"></span></div>
+  </div>
+</div>
+
+<div class="concept-card" id="card1">
+  <h2>Parallel Structure in Verb Lists</h2>
+  <span class="tag">TEST QUESTION 31</span>
+  <p>When you list actions in a sentence using <strong>and</strong> or <strong>or</strong>, every verb in the list must be in the <strong>same tense</strong>. This is called <strong>parallel structure</strong>.</p>
+
+  <div class="rule-box">
+    <strong>The Rule:</strong> All verbs joined by "and" or "or" in a series must match in form.<br><br>
+    <strong>Think of it like a team:</strong> If one verb is past tense, they all need to be past tense.
+  </div>
+
+  <div class="example-row">
+    <div class="ex-wrong">They <strong>held</strong> protests, <strong>marched</strong>, and <strong>had been arrested</strong>.</div>
+    <div class="ex-right">They <strong>held</strong> protests, <strong>marched</strong>, and <strong>were arrested</strong>.</div>
+  </div>
+
+  <p>Notice how "held" and "marched" are simple past tense. The third verb needs to match — <strong>"were arrested"</strong> (simple past, passive) — not "had been arrested" (past perfect).</p>
+
+  <div class="example-row">
+    <div class="ex-wrong">She <strong>sang</strong>, <strong>danced</strong>, and <strong>has performed</strong> for the crowd.</div>
+    <div class="ex-right">She <strong>sang</strong>, <strong>danced</strong>, and <strong>performed</strong> for the crowd.</div>
+  </div>
+
+  <div class="try-it">
+    <h3>Try It!</h3>
+    <p class="prompt">"The abolitionists wrote pamphlets, organized rallies, and _____ speeches across the country."</p>
+    <div class="options">
+      <button onclick="checkAnswer(this, false)">had been delivering</button>
+      <button onclick="checkAnswer(this, true)">delivered</button>
+      <button onclick="checkAnswer(this, false)">have delivered</button>
+      <button onclick="checkAnswer(this, false)">are delivering</button>
+    </div>
+    <div class="feedback"><span class="msg"></span></div>
+  </div>
+
+  <div class="try-it" style="margin-top:14px">
+    <h3>Try It!</h3>
+    <p class="prompt">"Robert Smalls memorized the codes, disguised himself, and _____ the ship to freedom."</p>
+    <div class="options">
+      <button onclick="checkAnswer(this, false)">has sailed</button>
+      <button onclick="checkAnswer(this, false)">was sailing</button>
+      <button onclick="checkAnswer(this, true)">sailed</button>
+      <button onclick="checkAnswer(this, false)">had been sailing</button>
+    </div>
+    <div class="feedback"><span class="msg"></span></div>
+  </div>
+</div>
+
+<div class="concept-card" id="card2">
+  <h2>Infinitives of Purpose</h2>
+  <span class="tag">TEST QUESTIONS 33, 34</span>
+  <p>An <strong>infinitive of purpose</strong> tells <em>why</em> something was done. It uses the word <strong>"to"</strong> followed by the base form of a verb.</p>
+
+  <div class="rule-box">
+    <strong>Pattern:</strong> [action] + <em>to</em> + [base verb]<br><br>
+    <strong>Means:</strong> "in order to"<br><br>
+    <strong>Example:</strong> Laws were enacted <em>to ensure</em> equal rights. (= in order to ensure)
+  </div>
+
+  <p>A common error is using <strong>"of ensuring"</strong> or <strong>"for ensure"</strong> instead of the correct infinitive <strong>"to ensure."</strong></p>
+
+  <div class="example-row">
+    <div class="ex-wrong">Restrictions were enacted <strong>of ensuring</strong> that few could vote.</div>
+    <div class="ex-right">Restrictions were enacted <strong>to ensure</strong> that few could vote.</div>
+  </div>
+
+  <p>You also need to know when an infinitive is <strong>already correct</strong>. On the test, "the right <em>to vote</em>" is correct as-is — don't change a correct infinitive to something like "of vote" or "of voting."</p>
+
+  <div class="example-row">
+    <div class="ex-wrong">the right <strong>of voting</strong></div>
+    <div class="ex-right">the right <strong>to vote</strong> ← already correct!</div>
+  </div>
+
+  <div class="try-it">
+    <h3>Try It!</h3>
+    <p class="prompt">"Smalls stole the ship _____ his family to freedom."</p>
+    <div class="options">
+      <button onclick="checkAnswer(this, false)">of bringing</button>
+      <button onclick="checkAnswer(this, true)">to bring</button>
+      <button onclick="checkAnswer(this, false)">for bring</button>
+      <button onclick="checkAnswer(this, false)">for bringing</button>
+    </div>
+    <div class="feedback"><span class="msg"></span></div>
+  </div>
+
+  <div class="try-it" style="margin-top:14px">
+    <h3>Try It!</h3>
+    <p class="prompt">Which sentence is correct?</p>
+    <div class="options">
+      <button onclick="checkAnswer(this, false)">She had the courage of standing up for her beliefs.</button>
+      <button onclick="checkAnswer(this, true)">She had the courage to stand up for her beliefs.</button>
+      <button onclick="checkAnswer(this, false)">She had the courage for stand up for her beliefs.</button>
+    </div>
+    <div class="feedback"><span class="msg"></span></div>
+  </div>
+</div>
+
+<div class="concept-card" id="card3">
+  <h2>"Would Have" vs. "Would Of"</h2>
+  <span class="tag">TEST QUESTION 32</span>
+  <p>This is one of the most common grammar mistakes in English, and it shows up on the test. People write <strong>"would of"</strong> because that's what "would've" <em>sounds</em> like when spoken aloud. But <strong>"would of" is always wrong.</strong></p>
+
+  <div class="rule-box">
+    <strong>The Rule:</strong> It's always <em>would <strong>have</strong></em>, never <em>would <strong>of</strong></em>.<br><br>
+    This applies to <em>could have</em>, <em>should have</em>, and <em>might have</em> too.
+  </div>
+
+  <div class="example-row">
+    <div class="ex-wrong">The country <strong>would of</strong> turned out differently.</div>
+    <div class="ex-right">The country <strong>would have</strong> turned out differently.</div>
+  </div>
+  <div class="example-row">
+    <div class="ex-wrong">He <strong>could of</strong> escaped sooner.</div>
+    <div class="ex-right">He <strong>could have</strong> escaped sooner.</div>
+  </div>
+  <div class="example-row">
+    <div class="ex-wrong">They <strong>should of</strong> fought harder.</div>
+    <div class="ex-right">They <strong>should have</strong> fought harder.</div>
+  </div>
+
+  <p><strong>Why does this happen?</strong> When we say "would've" out loud, the contraction "-'ve" sounds just like "of." But "of" is a preposition — it has nothing to do with verbs. The correct word is always <strong>"have."</strong></p>
+
+  <div class="try-it">
+    <h3>Try It!</h3>
+    <p class="prompt">Which is correct?</p>
+    <div class="options">
+      <button onclick="checkAnswer(this, false)">Eliza could of saved her son without running away.</button>
+      <button onclick="checkAnswer(this, true)">Eliza could have saved her son without running away.</button>
+      <button onclick="checkAnswer(this, false)">Eliza could has saved her son without running away.</button>
+    </div>
+    <div class="feedback"><span class="msg"></span></div>
+  </div>
+
+  <div class="try-it" style="margin-top:14px">
+    <h3>Try It!</h3>
+    <p class="prompt">Pick the sentence with NO errors:</p>
+    <div class="options">
+      <button onclick="checkAnswer(this, false)">If he would of known, he might of acted differently.</button>
+      <button onclick="checkAnswer(this, false)">If he would have known, he might of acted differently.</button>
+      <button onclick="checkAnswer(this, true)">If he had known, he might have acted differently.</button>
+    </div>
+    <div class="feedback"><span class="msg"></span></div>
+  </div>
+</div>
+
+<script>
+function showConcept(idx) {
+  document.querySelectorAll('.concept-card').forEach((c,i) => {
+    c.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.concept-nav button').forEach((b,i) => {
+    b.classList.toggle('active', i === idx);
+  });
+  document.getElementById('progressBar').style.width = ((idx+1)/4*100)+'%';
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function checkAnswer(btn, isCorrect) {
+  const tryIt = btn.closest('.try-it');
+  const buttons = tryIt.querySelectorAll('.options button');
+  const fb = tryIt.querySelector('.feedback');
+  const msg = fb.querySelector('.msg');
+
+  // Prevent re-answering
+  if (tryIt.dataset.answered) return;
+  tryIt.dataset.answered = 'true';
+
+  buttons.forEach(b => {
+    b.style.pointerEvents = 'none';
+    b.style.opacity = '0.7';
+  });
+
+  if (isCorrect) {
+    btn.classList.add('selected-correct');
+    btn.style.opacity = '1';
+    fb.className = 'feedback show correct';
+    msg.textContent = '✓ Correct! Nice work.';
+  } else {
+    btn.classList.add('selected-wrong');
+    btn.style.opacity = '1';
+    // Highlight the correct one
+    buttons.forEach(b => {
+      if (b.getAttribute('onclick').includes('true')) {
+        b.classList.add('reveal-correct');
+        b.style.opacity = '1';
+      }
+    });
+    fb.className = 'feedback show wrong';
+    msg.textContent = '✗ Not quite — check the highlighted answer above.';
+  }
+}
+</script>
+</body>
+</html>
