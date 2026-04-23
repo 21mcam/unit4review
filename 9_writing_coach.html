@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Written Response Coach — The Fight for Freedom</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf8f5;--surface:#ffffff;--ink:#1a1a2e;--ink-light:#555568;--accent:#b8860b;--accent-light:#daa520;--accent-bg:#fdf6e3;--success:#2d6a4f;--success-bg:#d8f3dc;--error:#9b2226;--error-bg:#fde8e8;--border:#e0ddd6;--radius:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;padding:20px 14px 60px;max-width:720px;margin:0 auto}
+h1{font-family:'Playfair Display',serif;font-weight:900;font-size:1.7rem;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;color:var(--ink-light);font-size:0.92rem;margin-bottom:4px}
+.instructions{text-align:center;color:var(--ink-light);font-size:0.85rem;margin-bottom:20px;font-style:italic}
+
+/* Prompt selector */
+.prompt-tabs{display:flex;gap:6px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+.prompt-tab{padding:8px 16px;border-radius:20px;font-weight:600;font-size:0.85rem;border:2px solid var(--border);background:var(--surface);color:var(--ink-light);cursor:pointer;transition:all 0.2s}
+.prompt-tab:hover{border-color:var(--accent);color:var(--accent)}
+.prompt-tab.active{background:var(--accent);color:white;border-color:var(--accent)}
+
+/* Prompt box */
+.prompt-box{background:var(--surface);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;border-left:4px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.prompt-label{font-size:0.78rem;font-weight:700;color:var(--accent);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px}
+.prompt-text{font-size:1rem;font-weight:500;line-height:1.6}
+
+/* Writing area */
+.write-section{background:var(--surface);border-radius:var(--radius);padding:20px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.write-section h3{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:10px}
+textarea{width:100%;min-height:220px;padding:14px;border:2px solid var(--border);border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:0.95rem;line-height:1.7;resize:vertical;background:var(--bg);color:var(--ink)}
+textarea:focus{outline:none;border-color:var(--accent);background:white}
+.word-count{display:flex;justify-content:space-between;margin-top:8px;font-size:0.82rem;color:var(--ink-light)}
+.word-count .target{color:var(--accent);font-weight:600}
+
+/* Rubric */
+.rubric-section{background:var(--surface);border-radius:var(--radius);padding:20px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.rubric-section h3{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.rubric-score{background:var(--accent-bg);color:var(--accent);padding:4px 12px;border-radius:12px;font-family:'Source Sans 3',sans-serif;font-size:0.85rem;font-weight:700}
+.rubric-item{padding:12px 14px;border-radius:8px;margin-bottom:8px;background:var(--bg);display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:all 0.2s;border:2px solid transparent}
+.rubric-item:hover{background:var(--accent-bg)}
+.rubric-item.checked{background:var(--success-bg);border-color:var(--success)}
+.rubric-checkbox{width:22px;height:22px;border:2px solid var(--border);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;color:white;transition:all 0.2s;margin-top:2px}
+.rubric-item.checked .rubric-checkbox{background:var(--success);border-color:var(--success)}
+.rubric-item.checked .rubric-checkbox::after{content:'✓';font-size:0.9rem}
+.rubric-content{flex:1}
+.rubric-content .r-title{font-weight:700;font-size:0.92rem;margin-bottom:2px}
+.rubric-content .r-desc{font-size:0.85rem;color:var(--ink-light);line-height:1.5}
+
+/* Sample response */
+.sample-section{background:var(--surface);border-radius:var(--radius);padding:20px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.sample-section h3{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:10px}
+.toggle-btn{background:var(--ink);color:white;border:none;padding:10px 24px;border-radius:20px;font-family:'Source Sans 3',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s;width:100%}
+.toggle-btn:hover{background:var(--accent)}
+.sample-content{display:none;margin-top:14px;padding:16px;background:var(--accent-bg);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;font-size:0.92rem;line-height:1.7}
+.sample-content.show{display:block}
+.sample-content .label{font-weight:700;color:var(--accent);display:block;margin-top:10px;margin-bottom:4px;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.04em}
+.sample-content .label:first-child{margin-top:0}
+
+/* Tips */
+.tips{background:var(--accent-bg);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:18px;font-size:0.88rem;line-height:1.6}
+.tips strong{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<h1>Written Response Coach</h1>
+<p class="subtitle">The Fight for Freedom Unit</p>
+<p class="instructions">Practice the two written response questions from the test. Write your answer, then check your work against the rubric.</p>
+
+<div class="tips">
+  <strong>💡 Quick tip:</strong> On the real test, written responses are scored on (1) answering the prompt completely, (2) using specific evidence from both passages, and (3) clear writing. Aim for 6–10 sentences.
+</div>
+
+<div class="prompt-tabs">
+  <button class="prompt-tab active" onclick="switchPrompt(0)">Prompt 1: Central Ideas</button>
+  <button class="prompt-tab" onclick="switchPrompt(1)">Prompt 2: Purposes</button>
+</div>
+
+<div class="prompt-box">
+  <div class="prompt-label">Prompt</div>
+  <div class="prompt-text" id="promptText"></div>
+</div>
+
+<div class="write-section">
+  <h3>Your Response</h3>
+  <textarea id="responseText" placeholder="Write your response here. Remember to cite specific examples from both passages..." oninput="updateWordCount()"></textarea>
+  <div class="word-count">
+    <span id="wordCount">0 words</span>
+    <span class="target">Target: 100+ words</span>
+  </div>
+</div>
+
+<div class="rubric-section">
+  <h3>Self-Evaluation Rubric <span class="rubric-score" id="rubricScore">0 / 6</span></h3>
+  <p style="font-size:0.85rem;color:var(--ink-light);margin-bottom:12px">Read back through your response and check off each item you did well. Be honest — this helps you find gaps before test day.</p>
+  <div id="rubricList"></div>
+</div>
+
+<div class="sample-section">
+  <h3>Sample Strong Response</h3>
+  <button class="toggle-btn" onclick="toggleSample()" id="toggleBtn">Show Sample Response</button>
+  <div class="sample-content" id="sampleContent"></div>
+</div>
+
+<script>
+const PROMPTS = [
+  {
+    question: "How are the central ideas of Passage 1 (Escape to Freedom) and Passage 2 (Uncle Tom's Cabin) similar and different? Use specific examples from both texts to support your answer.",
+    rubric: [
+      {title: "Identified a central idea from EACH passage", desc: "You clearly stated the main idea from both Escape to Freedom and Uncle Tom's Cabin."},
+      {title: "Compared the two passages (similarities)", desc: "You explained at least one way the central ideas are alike (e.g., both deal with escape, both show bravery, both highlight the cruelty of slavery)."},
+      {title: "Contrasted the two passages (differences)", desc: "You explained at least one way they differ (e.g., Passage 1 is nonfiction/historical, Passage 2 is fiction/emotional; different perspectives on escape)."},
+      {title: "Used a specific quote or detail from Passage 1", desc: "You referenced an actual moment from the Smalls passage \u2014 like the whistle signal, meeting Lincoln, or his navigation skills."},
+      {title: "Used a specific quote or detail from Passage 2", desc: "You referenced an actual moment from Eliza's story \u2014 like overhearing the conversation, packing toys, or the simile about the sunbeam."},
+      {title: "Organized clearly with complete sentences", desc: "Your response has a clear opening, body, and closing thought, with proper punctuation and no run-on sentences."},
+    ],
+    sample: [
+      {label: "Central Idea", text: "Both passages share a central idea about the courage it takes to escape slavery, but they approach that idea from very different angles."},
+      {label: "Similarity", text: "In Passage 1, Robert Smalls risks everything to steal the Planter and sail his family and crew to freedom. In Passage 2, Eliza flees into the cold night with her son Harry to save him from being sold. Both show that the desire for freedom \u2014 and the need to protect loved ones \u2014 can drive people to take enormous risks."},
+      {label: "Difference", text: "However, the passages are also very different. Passage 1 is a nonfiction account that focuses on Smalls's actions and his impact on history, including his meeting with President Lincoln. Passage 2, on the other hand, is fiction that gives readers a deep look inside Eliza's emotions \u2014 like when the author writes that 'the heart has no tears to give; it drops only blood, bleeding itself away in silence.'"},
+      {label: "Conclusion", text: "Together, these passages show both the public, heroic side of escape and the private, emotional side of what it actually feels like to flee for your life."},
+    ]
+  },
+  {
+    question: "How are the purposes of Passage 1 (the poem 'Frederick Douglass') and Passage 2 (from My Bondage and My Freedom) alike and different? Use specific examples from both texts to support your response.",
+    rubric: [
+      {title: "Identified the purpose of the poem", desc: "You stated what Dunbar was trying to accomplish (honor Douglass, inspire future generations, celebrate his legacy)."},
+      {title: "Identified the purpose of the autobiography", desc: "You stated what Douglass was trying to accomplish (share his true story, inspire others, give an authentic account of escape)."},
+      {title: "Explained how the purposes are similar", desc: "You noted that both texts aim to inspire readers or both celebrate freedom/resistance \u2014 even if they go about it differently."},
+      {title: "Explained how the purposes are different", desc: "You noted that the poem looks backward to honor a legacy, while the autobiography is a firsthand account; poetic tribute vs. personal experience."},
+      {title: "Used specific evidence from the poem", desc: "You quoted or referenced a specific line (e.g., 'still thy voice is ringing o'er the gale' or the bow-and-arrows metaphor)."},
+      {title: "Used specific evidence from the autobiography", desc: "You referenced a specific moment (e.g., bringing Master Hugh nine dollars, the twenty-five cents, September 3, 1838)."},
+    ],
+    sample: [
+      {label: "Similarity", text: "Both passages aim to inspire readers by focusing on Frederick Douglass, but they use very different methods to do so."},
+      {label: "Purpose of the Poem", text: "Dunbar's poem is a tribute meant to honor Douglass's legacy after his death and to encourage future generations to keep fighting against injustice. The poem states, 'But still thy voice is ringing o'er the gale!' \u2014 suggesting that even after Douglass is gone, his message continues to inspire."},
+      {label: "Purpose of the Autobiography", text: "Douglass's own writing in My Bondage and My Freedom has a different purpose: to share a firsthand, true account of his escape in order to motivate others and show what slavery was really like. He describes working for Mr. Butler and carefully planning his escape, even using the twenty-five cents his master gave him 'to pay my fare on the underground railroad.'"},
+      {label: "Conclusion", text: "While Dunbar uses poetic imagery to look backward and celebrate a hero, Douglass uses plain, personal storytelling to give readers an authentic picture of his experience. Both purposes \u2014 honoring a legacy and bearing witness \u2014 work together to keep the fight for freedom alive."},
+    ]
+  }
+];
+
+let currentPrompt = 0;
+let checkedItems = [[], []];
+
+function switchPrompt(idx) {
+  currentPrompt = idx;
+  document.querySelectorAll('.prompt-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  renderPrompt();
+}
+
+function renderPrompt() {
+  const p = PROMPTS[currentPrompt];
+  document.getElementById('promptText').textContent = p.question;
+
+  // Don't clear user's writing between prompt switches - use different textareas? Simpler: keep one textarea
+  // Actually, user should be able to switch between prompts, so save each separately
+  const saved = localStorage.getItem('response_' + currentPrompt) || '';
+  document.getElementById('responseText').value = saved;
+  updateWordCount();
+
+  // Rubric
+  const rubricList = document.getElementById('rubricList');
+  rubricList.innerHTML = '';
+  p.rubric.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'rubric-item' + (checkedItems[currentPrompt].includes(i) ? ' checked' : '');
+    row.innerHTML = '<div class="rubric-checkbox"></div><div class="rubric-content"><div class="r-title">' + item.title + '</div><div class="r-desc">' + item.desc + '</div></div>';
+    row.addEventListener('click', () => toggleRubric(i));
+    rubricList.appendChild(row);
+  });
+  updateRubricScore();
+
+  // Sample
+  const sample = document.getElementById('sampleContent');
+  sample.innerHTML = p.sample.map(s => '<span class="label">' + s.label + '</span>' + s.text).join('');
+  sample.classList.remove('show');
+  document.getElementById('toggleBtn').textContent = 'Show Sample Response';
+}
+
+function updateWordCount() {
+  const txt = document.getElementById('responseText').value;
+  const words = txt.trim().split(/\s+/).filter(w => w.length > 0).length;
+  document.getElementById('wordCount').textContent = words + ' word' + (words === 1 ? '' : 's');
+
+  // Auto-save
+  try { localStorage.setItem('response_' + currentPrompt, txt); } catch(e) {}
+}
+
+function toggleRubric(idx) {
+  const arr = checkedItems[currentPrompt];
+  const pos = arr.indexOf(idx);
+  if (pos >= 0) arr.splice(pos, 1);
+  else arr.push(idx);
+
+  const items = document.querySelectorAll('.rubric-item');
+  items[idx].classList.toggle('checked');
+  updateRubricScore();
+}
+
+function updateRubricScore() {
+  const n = checkedItems[currentPrompt].length;
+  const total = PROMPTS[currentPrompt].rubric.length;
+  const el = document.getElementById('rubricScore');
+  el.textContent = n + ' / ' + total;
+  if (n === total) {
+    el.style.background = 'var(--success-bg)';
+    el.style.color = 'var(--success)';
+  } else {
+    el.style.background = 'var(--accent-bg)';
+    el.style.color = 'var(--accent)';
+  }
+}
+
+function toggleSample() {
+  const sample = document.getElementById('sampleContent');
+  const btn = document.getElementById('toggleBtn');
+  sample.classList.toggle('show');
+  btn.textContent = sample.classList.contains('show') ? 'Hide Sample Response' : 'Show Sample Response';
+}
+
+renderPrompt();
+</script>
+</body>
+</html>

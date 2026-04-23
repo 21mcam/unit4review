@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evidence Finder — The Fight for Freedom</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf8f5;--surface:#ffffff;--ink:#1a1a2e;--ink-light:#555568;--accent:#b8860b;--accent-light:#daa520;--accent-bg:#fdf6e3;--success:#2d6a4f;--success-bg:#d8f3dc;--error:#9b2226;--error-bg:#fde8e8;--border:#e0ddd6;--radius:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;padding:20px 14px 60px;max-width:680px;margin:0 auto}
+h1{font-family:'Playfair Display',serif;font-weight:900;font-size:1.7rem;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;color:var(--ink-light);font-size:0.92rem;margin-bottom:4px}
+.instructions{text-align:center;color:var(--ink-light);font-size:0.85rem;margin-bottom:18px;font-style:italic}
+
+.progress-bar{background:var(--surface);border-radius:20px;padding:8px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;box-shadow:0 1px 6px rgba(0,0,0,0.05)}
+.progress-text{font-size:0.88rem;font-weight:600;color:var(--ink-light)}
+.score-text{font-size:0.88rem;font-weight:700;color:var(--accent)}
+.progress-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.4s}
+
+/* Claim box */
+.claim-box{background:var(--ink);color:white;border-radius:var(--radius);padding:20px 22px;margin-bottom:16px;position:relative;overflow:hidden}
+.claim-box::before{content:'';position:absolute;top:-20%;left:-10%;width:130%;height:160%;background:radial-gradient(ellipse at 30% 40%,rgba(218,165,32,0.12) 0%,transparent 60%);pointer-events:none}
+.claim-label{font-size:0.75rem;font-weight:700;color:var(--accent-light);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;position:relative}
+.claim-text{font-size:1rem;line-height:1.5;font-weight:500;position:relative}
+.claim-source{font-size:0.82rem;color:rgba(255,255,255,0.6);margin-top:8px;position:relative;font-style:italic}
+
+/* Instruction */
+.pick-label{font-weight:700;font-size:0.88rem;color:var(--ink-light);margin-bottom:10px;text-align:center}
+
+/* Evidence choices */
+.choices{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.choice{padding:14px 16px;background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);font-size:0.92rem;line-height:1.5;cursor:pointer;transition:all 0.2s;font-style:italic;color:var(--ink)}
+.choice:hover:not(.disabled){border-color:var(--accent-light);background:var(--accent-bg)}
+.choice.disabled{cursor:default}
+.choice.correct{border-color:var(--success);background:var(--success-bg);color:var(--success);font-weight:500}
+.choice.wrong{border-color:var(--error);background:var(--error-bg);color:var(--error)}
+.choice.reveal{border-color:var(--success);background:var(--success-bg);color:var(--success);font-weight:500}
+
+/* Feedback */
+.feedback-box{padding:16px 18px;border-radius:8px;margin-bottom:16px;display:none}
+.feedback-box.show{display:block;animation:fadeIn 0.3s ease}
+.feedback-box.correct{background:var(--success-bg);border-left:4px solid var(--success)}
+.feedback-box.wrong{background:var(--error-bg);border-left:4px solid var(--error)}
+.feedback-box .fb-title{font-weight:700;font-size:0.95rem;margin-bottom:6px}
+.feedback-box.correct .fb-title{color:var(--success)}
+.feedback-box.wrong .fb-title{color:var(--error)}
+.feedback-box .fb-explain{font-size:0.88rem;line-height:1.6;color:var(--ink)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Controls */
+.controls{text-align:center}
+.btn{padding:11px 28px;border-radius:24px;font-family:'Source Sans 3',sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer;border:none;background:var(--accent);color:white;transition:all 0.2s}
+.btn:hover{background:var(--accent-light)}
+.btn:disabled{opacity:0.4;cursor:default}
+
+/* Completion */
+.completion{display:none;text-align:center;padding:32px 24px;background:var(--surface);border-radius:var(--radius);box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+.completion.show{display:block;animation:popIn 0.5s ease}
+.completion h2{font-family:'Playfair Display',serif;font-size:1.6rem;margin-bottom:10px}
+.completion .final-score{font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;margin:16px 0}
+.completion .final-score.great{color:var(--success)}
+.completion .final-score.ok{color:var(--accent)}
+.completion .final-score.low{color:var(--error)}
+@keyframes popIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+
+/* Tips */
+.tip{background:var(--accent-bg);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:18px;font-size:0.85rem;line-height:1.5}
+.tip strong{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<h1>Evidence Finder</h1>
+<p class="subtitle">The Fight for Freedom Unit</p>
+<p class="instructions">Read each claim, then pick the quote that BEST supports it. This is the skill the test's two-part questions are testing!</p>
+
+<div class="tip">
+  <strong>💡 Strategy:</strong> The right evidence directly proves the claim. Be careful — sometimes the wrong answers sound related but don't actually prove the specific point.
+</div>
+
+<div id="gameArea">
+  <div class="progress-bar">
+    <div>
+      <div class="progress-text" id="progressText">Question 1 of 10</div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="score-text" id="scoreText">Score: 0</div>
+  </div>
+
+  <div class="claim-box">
+    <div class="claim-label">The Claim</div>
+    <div class="claim-text" id="claimText"></div>
+    <div class="claim-source" id="claimSource"></div>
+  </div>
+
+  <div class="pick-label">Which quote best supports this claim?</div>
+  <div class="choices" id="choices"></div>
+
+  <div class="feedback-box" id="feedback">
+    <div class="fb-title" id="fbTitle"></div>
+    <div class="fb-explain" id="fbExplain"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="nextBtn" onclick="nextQuestion()" disabled>Next Question</button>
+  </div>
+</div>
+
+<div class="completion" id="completion">
+  <h2>Great work!</h2>
+  <div class="final-score" id="finalScore"></div>
+  <p id="finalMsg" style="color:var(--ink-light);margin-bottom:20px"></p>
+  <button class="btn" onclick="location.reload()">Try Again</button>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    claim: "Robert Smalls became an expert at navigation from a young age.",
+    source: "Passage 1: Escape to Freedom",
+    choices: [
+      "\"Smalls was born into slavery on April 5, 1839, in Beaufort, South Carolina.\"",
+      "\"By the time he was 12 years old, his master began to hire him out to do various jobs in Charleston.\"",
+      "\"Over time, he became an excellent sailor and navigator. He could steer any ship through narrow waterways without running into rocks.\"",
+      "\"The powerful steamer had been turned into a Confederate army ferry and supply gunboat.\""
+    ],
+    correct: 2,
+    explain: "This quote directly states Smalls became an 'excellent sailor and navigator' \u2014 proving he was an expert at navigation. The other quotes give background info but don't specifically prove his navigation expertise."
+  },
+  {
+    claim: "Smalls used clever disguises and tricks to get past the Confederate forts.",
+    source: "Passage 1: Escape to Freedom",
+    choices: [
+      "\"He put on the broad-brimmed straw hat that belonged to the Planter's captain.\"",
+      "\"Smalls first picked up his family and the families of the other crewmen from a nearby wharf.\"",
+      "\"The Planter proved to be a great prize for the North.\"",
+      "\"He could steer any ship through narrow waterways without running into rocks.\""
+    ],
+    correct: 0,
+    explain: "Wearing the captain's hat was a deliberate disguise to fool the forts' sentries into thinking he was the actual captain. The other quotes describe different parts of the escape but don't show disguises."
+  },
+  {
+    claim: "Eliza's love for her son gives her the courage to escape.",
+    source: "Passage 2: Uncle Tom's Cabin",
+    choices: [
+      "\"'I'm sorry, very sorry, Emily,' said Mr. Shelby.\"",
+      "\"There was one listener to this conversation whom Mr. and Mrs. Shelby little suspected.\"",
+      "\"'Poor boy! poor fellow!' said Eliza; 'they have sold you! but your mother will save you yet!'\"",
+      "\"It was a sparkling, frosty, starlight night.\""
+    ],
+    correct: 2,
+    explain: "Eliza's words \u2014 'your mother will save you yet!' \u2014 directly show that her love for Harry is driving her decision to flee. The other options describe setting or other characters, not her motivation."
+  },
+  {
+    claim: "Haley is portrayed as cold and focused only on money.",
+    source: "Passage 2: Uncle Tom's Cabin",
+    choices: [
+      "\"'Is he so hard, then?'\"",
+      "\"'Why, not a cruel man, exactly, but a man of leather,\u2014a man alive to nothing but trade and profit.'\"",
+      "\"'I'll go and see poor old Tom, God help him, in his distress!'\"",
+      "\"'Hush, Harry,' she said; 'mustn't speak loud.'\""
+    ],
+    correct: 1,
+    explain: "This simile calls Haley a 'man of leather' who is 'alive to nothing but trade and profit' \u2014 directly proving he's cold and money-focused. The first quote is just a question about him, not a description."
+  },
+  {
+    claim: "The author of the poem 'Frederick Douglass' portrays Douglass as a fearless fighter for his people.",
+    source: "Passage 1 (Frederick Douglass poem)",
+    choices: [
+      "\"A hush is over all the teeming lists,\"",
+      "\"She loved him with a mother's deepest love.\"",
+      "\"He dared the lightning in the lightning's track, / And answered thunder with his thunder back.\"",
+      "\"We weep for him, but we have touched his hand,\""
+    ],
+    correct: 2,
+    explain: "These lines show Douglass confronting powerful forces with equal power \u2014 'daring the lightning' and 'answering thunder with thunder' \u2014 a clear image of fearless fighting. The others describe mourning or relationships, not fearlessness."
+  },
+  {
+    claim: "Douglass's influence continues to impact people even after his death.",
+    source: "Passage 1 (Frederick Douglass poem)",
+    choices: [
+      "\"When Bondage held her bleeding in the dust,\"",
+      "\"Oh, Douglass, thou hast passed beyond the shore, / But still thy voice is ringing o'er the gale!\"",
+      "\"And Ethiopia, with bosom torn,\"",
+      "\"To sin and crime he gave their proper hue,\""
+    ],
+    correct: 1,
+    explain: "The line 'still thy voice is ringing o'er the gale' directly says that even though Douglass is gone ('passed beyond the shore'), his voice \u2014 his message \u2014 is still reaching people. That's lasting influence."
+  },
+  {
+    claim: "Douglass worked carefully to avoid his master's suspicion while planning his escape.",
+    source: "Passage 2: My Bondage and My Freedom",
+    choices: [
+      "\"Master Hugh little knew what my plans were.\"",
+      "\"I brought Master Hugh nearly nine dollars.\"",
+      "\"My object, therefore, in working steadily, was to remove suspicion, and in this I succeeded admirably.\"",
+      "\"He was very much pleased.\""
+    ],
+    correct: 2,
+    explain: "This sentence explicitly states his purpose: 'to remove suspicion' through steady work. It directly shows the strategy Douglass used. Option A hints at this but is less specific \u2014 option C shows the actual method."
+  },
+  {
+    claim: "Douglass felt sadness about leaving his close friends behind in Baltimore.",
+    source: "Passage 2: My Bondage and My Freedom",
+    choices: [
+      "\"On Monday, the third day of September, 1838, in accordance with my resolution, I bade farewell to the city of Baltimore.\"",
+      "\"I had the painful sensation of being about to separate from a circle of honest and warm hearted friends, in Baltimore.\"",
+      "\"I was a favorite with Mr. B., and, young as I was, I had served as his foreman.\"",
+      "\"He took the money, commended me, and told me I might have done the same thing the week before.\""
+    ],
+    correct: 1,
+    explain: "The phrase 'painful sensation of being about to separate from a circle of honest and warm hearted friends' directly proves his sadness about leaving. The other options describe actions or his work history, not emotional pain."
+  },
+  {
+    claim: "Paragraph 11 of Passage 1 shows cause-and-effect: Smalls's actions led to important results.",
+    source: "Passage 1: Escape to Freedom",
+    choices: [
+      "\"Smalls's actions introduced him to important men.\"",
+      "\"In a meeting with President Abraham Lincoln and Secretary of War Edwin M. Stanton in August 1862...\"",
+      "\"African Americans could make an important contribution to the war effort.\"",
+      "\"Smalls helped raise 5,000 volunteers.\""
+    ],
+    correct: 0,
+    explain: "This sentence directly states the cause (Smalls's actions) and the effect (introduced him to important men). The other quotes are parts of the larger cause-and-effect chain but this one most clearly shows the relationship."
+  },
+  {
+    claim: "Smalls was an important figure in the Union war effort, not just in his own escape.",
+    source: "Passage 1: Escape to Freedom",
+    choices: [
+      "\"Smalls and his wife, Hannah, dreamed of escaping from slavery.\"",
+      "\"He piloted the Planter and the USS Keokuk along the South Carolina and Georgia coasts for the rest of the war. During that time, Smalls was in 17 engagements...\"",
+      "\"He returned to Beaufort after the war, where he bought his former master's home.\"",
+      "\"Smalls was born into slavery on April 5, 1839.\""
+    ],
+    correct: 1,
+    explain: "This quote shows Smalls was in 17 battles piloting for the Union \u2014 proving his importance to the overall war effort, not just his personal escape. The other options focus on his personal life or earlier moments."
+  }
+];
+
+let currentQ = 0;
+let score = 0;
+let answered = false;
+
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  answered = false;
+
+  document.getElementById('progressText').textContent = `Question ${currentQ + 1} of ${QUESTIONS.length}`;
+  document.getElementById('progressFill').style.width = ((currentQ / QUESTIONS.length) * 100) + '%';
+  document.getElementById('scoreText').textContent = 'Score: ' + score;
+
+  document.getElementById('claimText').textContent = q.claim;
+  document.getElementById('claimSource').textContent = 'Source: ' + q.source;
+
+  const choicesEl = document.getElementById('choices');
+  choicesEl.innerHTML = '';
+  q.choices.forEach((c, i) => {
+    const div = document.createElement('div');
+    div.className = 'choice';
+    div.textContent = c;
+    div.addEventListener('click', () => selectChoice(i));
+    choicesEl.appendChild(div);
+  });
+
+  document.getElementById('feedback').classList.remove('show', 'correct', 'wrong');
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('nextBtn').textContent = currentQ < QUESTIONS.length - 1 ? 'Next Question' : 'See Final Score';
+}
+
+function selectChoice(idx) {
+  if (answered) return;
+  answered = true;
+  const q = QUESTIONS[currentQ];
+  const choiceEls = document.querySelectorAll('.choice');
+
+  choiceEls.forEach(c => c.classList.add('disabled'));
+
+  const fb = document.getElementById('feedback');
+  if (idx === q.correct) {
+    choiceEls[idx].classList.add('correct');
+    score++;
+    document.getElementById('fbTitle').textContent = '\u2713 Correct!';
+    fb.classList.add('correct');
+  } else {
+    choiceEls[idx].classList.add('wrong');
+    choiceEls[q.correct].classList.add('reveal');
+    document.getElementById('fbTitle').textContent = '\u2717 Not quite';
+    fb.classList.add('wrong');
+  }
+  document.getElementById('fbExplain').textContent = q.explain;
+  fb.classList.add('show');
+
+  document.getElementById('scoreText').textContent = 'Score: ' + score;
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= QUESTIONS.length) {
+    showFinal();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showFinal() {
+  document.getElementById('gameArea').style.display = 'none';
+  const panel = document.getElementById('completion');
+  panel.classList.add('show');
+  const pct = Math.round((score / QUESTIONS.length) * 100);
+  const el = document.getElementById('finalScore');
+  el.textContent = score + ' / ' + QUESTIONS.length;
+  el.className = 'final-score ' + (pct >= 80 ? 'great' : pct >= 60 ? 'ok' : 'low');
+
+  let msg;
+  if (pct === 100) msg = "Perfect score! You've mastered finding text evidence.";
+  else if (pct >= 80) msg = "Excellent! You've got a strong handle on finding evidence in the text.";
+  else if (pct >= 60) msg = "Solid effort. Keep practicing \u2014 look carefully at what each quote actually proves.";
+  else msg = "This is a tough skill. Review the explanations and try again \u2014 you'll get it!";
+  document.getElementById('finalMsg').textContent = msg;
+}
+
+renderQuestion();
+</script>
+</body>
+</html>

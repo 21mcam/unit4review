@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quote Detective — The Fight for Freedom</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Special+Elite&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#1a1614;--surface:#2a2420;--surface2:#3a322d;--paper:#f4ecd8;--paper-dark:#d4c9ad;--ink:#2a2420;--ink-light:#e8dfc9;--ink-dim:#a0947c;--accent:#c9a55a;--accent-light:#e0c47d;--success:#6ba87a;--success-bg:#3a5a42;--error:#c77474;--error-bg:#5a3232;--radius:8px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);background-image:radial-gradient(ellipse at top,rgba(201,165,90,0.08),transparent 60%);color:var(--ink-light);min-height:100vh;padding:20px 14px 60px;max-width:640px;margin:0 auto}
+h1{font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;text-align:center;margin-bottom:4px;color:var(--accent)}
+.subtitle{text-align:center;color:var(--ink-dim);font-size:0.9rem;margin-bottom:4px;letter-spacing:0.02em}
+.instructions{text-align:center;color:var(--ink-dim);font-size:0.82rem;margin-bottom:20px;font-style:italic}
+
+/* Top bar */
+.top-bar{display:flex;justify-content:space-between;align-items:center;background:var(--surface);padding:12px 18px;border-radius:var(--radius);margin-bottom:18px;border:1px solid rgba(201,165,90,0.15)}
+.case-num{font-family:'Special Elite',monospace;font-size:0.85rem;color:var(--accent)}
+.streak{font-size:0.85rem;color:var(--ink-dim)}
+.streak .fire{color:var(--accent-light);font-weight:700}
+.score{font-size:0.9rem;color:var(--accent-light);font-weight:700}
+
+/* Evidence card (the quote) */
+.evidence-card{background:var(--paper);color:var(--ink);padding:28px 28px 24px;border-radius:var(--radius);margin-bottom:18px;position:relative;box-shadow:0 6px 20px rgba(0,0,0,0.3);transform:rotate(-0.3deg);border:1px solid var(--paper-dark)}
+.evidence-card::before{content:'"';position:absolute;top:-8px;left:14px;font-family:'Playfair Display',serif;font-size:4rem;color:var(--accent);opacity:0.4;line-height:1}
+.evidence-stamp{position:absolute;top:14px;right:14px;font-family:'Special Elite',monospace;font-size:0.65rem;color:var(--error);border:2px solid var(--error);padding:2px 8px;border-radius:3px;opacity:0.6;transform:rotate(6deg);letter-spacing:0.05em}
+.evidence-label{font-family:'Special Elite',monospace;font-size:0.72rem;color:var(--accent);letter-spacing:0.1em;margin-bottom:10px;text-transform:uppercase;font-weight:700}
+.quote-text{font-family:'Playfair Display',serif;font-size:1.08rem;line-height:1.6;font-style:italic;margin-bottom:6px}
+
+/* Suspects (answer choices) */
+.suspects-label{font-family:'Special Elite',monospace;font-size:0.78rem;color:var(--accent-light);letter-spacing:0.08em;margin-bottom:10px;text-align:center}
+.suspects{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+@media(max-width:480px){.suspects{grid-template-columns:1fr}}
+.suspect{background:var(--surface);border:2px solid rgba(201,165,90,0.2);border-radius:var(--radius);padding:14px 14px;cursor:pointer;transition:all 0.2s;text-align:left;color:var(--ink-light);font-family:'Source Sans 3',sans-serif;font-size:0.88rem;line-height:1.4}
+.suspect:hover:not(.disabled){border-color:var(--accent);background:var(--surface2);transform:translateY(-1px)}
+.suspect.disabled{cursor:default}
+.suspect.correct{border-color:var(--success);background:var(--success-bg);color:var(--ink-light)}
+.suspect.wrong{border-color:var(--error);background:var(--error-bg);color:var(--ink-light)}
+.suspect.reveal{border-color:var(--success);background:var(--success-bg);color:var(--ink-light)}
+.suspect .name{font-weight:700;display:block;margin-bottom:2px;color:var(--accent-light)}
+.suspect.correct .name,.suspect.wrong .name,.suspect.reveal .name{color:inherit}
+.suspect .tag{font-size:0.76rem;color:var(--ink-dim);font-style:italic}
+
+/* Verdict */
+.verdict{padding:14px 16px;border-radius:var(--radius);margin-bottom:14px;display:none}
+.verdict.show{display:block;animation:fadeIn 0.3s ease}
+.verdict.correct{background:var(--success-bg);border-left:4px solid var(--success)}
+.verdict.wrong{background:var(--error-bg);border-left:4px solid var(--error)}
+.verdict .title{font-family:'Special Elite',monospace;font-weight:700;font-size:0.9rem;margin-bottom:6px;letter-spacing:0.04em}
+.verdict.correct .title{color:var(--success)}
+.verdict.wrong .title{color:#e8a0a0}
+.verdict .explain{font-size:0.85rem;line-height:1.5;color:var(--ink-light)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* Controls */
+.controls{text-align:center}
+.btn{padding:11px 28px;border-radius:24px;font-family:'Source Sans 3',sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer;border:none;background:var(--accent);color:var(--bg);transition:all 0.2s}
+.btn:hover{background:var(--accent-light)}
+.btn:disabled{opacity:0.4;cursor:default}
+
+/* Completion */
+.completion{display:none;text-align:center;padding:32px 24px;background:var(--surface);border-radius:var(--radius);border:1px solid rgba(201,165,90,0.2)}
+.completion.show{display:block;animation:popIn 0.5s ease}
+.completion h2{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--accent);margin-bottom:6px}
+.completion .case-closed{font-family:'Special Elite',monospace;color:var(--ink-dim);font-size:0.85rem;letter-spacing:0.1em;margin-bottom:16px}
+.completion .final-score{font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;margin:16px 0;color:var(--accent-light)}
+.completion .final-msg{color:var(--ink-dim);font-size:0.95rem;margin-bottom:20px}
+@keyframes popIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+</style>
+</head>
+<body>
+
+<h1>🔍 Quote Detective</h1>
+<p class="subtitle">The Fight for Freedom Unit · Case Files</p>
+<p class="instructions">Each case presents a piece of evidence. Identify who said it or where it came from!</p>
+
+<div id="gameArea">
+  <div class="top-bar">
+    <span class="case-num" id="caseNum">CASE #001</span>
+    <span class="streak">Streak: <span class="fire" id="streakNum">0</span> 🔥</span>
+    <span class="score" id="scoreText">0 / 12</span>
+  </div>
+
+  <div class="evidence-card">
+    <span class="evidence-stamp">EVIDENCE</span>
+    <div class="evidence-label">Exhibit A — The Quote</div>
+    <div class="quote-text" id="quoteText"></div>
+  </div>
+
+  <div class="suspects-label">◆ WHO OR WHERE IS THIS FROM? ◆</div>
+  <div class="suspects" id="suspects"></div>
+
+  <div class="verdict" id="verdict">
+    <div class="title" id="verdictTitle"></div>
+    <div class="explain" id="verdictExplain"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="nextBtn" onclick="nextCase()" disabled>Next Case →</button>
+  </div>
+</div>
+
+<div class="completion" id="completion">
+  <h2>Case Closed!</h2>
+  <div class="case-closed">— END OF INVESTIGATION —</div>
+  <div class="final-score" id="finalScore"></div>
+  <div class="final-msg" id="finalMsg"></div>
+  <button class="btn" onclick="location.reload()">New Case</button>
+</div>
+
+<script>
+// Each case has a quote + 4 possible sources. The CORRECT source must be one of them.
+const CASES = [
+  {
+    quote: "Poor boy! poor fellow! they have sold you! but your mother will save you yet!",
+    correct: 0,
+    suspects: [
+      {name:"Eliza", tag:"Uncle Tom's Cabin"},
+      {name:"Mrs. Shelby", tag:"Uncle Tom's Cabin"},
+      {name:"Frederick Douglass", tag:"My Bondage and My Freedom"},
+      {name:"Mr. Shelby", tag:"Uncle Tom's Cabin"}
+    ],
+    explain: "These are Eliza's words as she looks at her sleeping son Harry, right before she decides to flee. 'Your mother will save you' makes it clear \u2014 this is Eliza speaking about her son."
+  },
+  {
+    quote: "has never and will never sell her own mother at a good percentage \u2014 not wishing the old woman any harm either.",
+    isParaphrase: true,
+    realQuote: "He'd sell his own mother at a good percentage \u2014 not wishing the old woman any harm either.",
+    correct: 1,
+    suspects: [
+      {name:"Haley", tag:"describing himself"},
+      {name:"Mr. Shelby", tag:"describing Haley"},
+      {name:"Frederick Douglass", tag:"describing Master Hugh"},
+      {name:"Mrs. Shelby", tag:"describing Mr. Shelby"}
+    ],
+    quoteOverride: "He'd sell his own mother at a good percentage \u2014 not wishing the old woman any harm either.",
+    explain: "Mr. Shelby says this to describe how ruthless Haley is about business. It's meant to show Haley would literally sell family members if it made money \u2014 a brutal characterization from Mr. Shelby about Haley."
+  },
+  {
+    quote: "Some of your U.S. guns, sir.",
+    correct: 0,
+    suspects: [
+      {name:"Robert Smalls", tag:"to the Union commander"},
+      {name:"Frederick Douglass", tag:"to Master Hugh"},
+      {name:"Admiral Du Pont", tag:"to his crew"},
+      {name:"Mr. Shelby", tag:"to his wife"}
+    ],
+    explain: "This is Robert Smalls addressing the commander of the USS Onward when he surrendered the Planter. The clever line implies he was returning Union property that had been captured \u2014 along with a valuable Confederate ship."
+  },
+  {
+    quote: "I'll be in no sense accomplice or help in this cruel business.",
+    correct: 0,
+    suspects: [
+      {name:"Mrs. Shelby", tag:"about the sale of Tom and Harry"},
+      {name:"Eliza", tag:"about her escape plan"},
+      {name:"Mr. Shelby", tag:"about his decision"},
+      {name:"Haley", tag:"about his offer"}
+    ],
+    explain: "Mrs. Shelby refuses to help with the sale of Tom and Harry, calling it a 'cruel business.' Her moral objection to her husband's choice shows she has empathy \u2014 but she doesn't have the power to stop it."
+  },
+  {
+    quote: "Oh, Douglass, thou hast passed beyond the shore, / But still thy voice is ringing o'er the gale!",
+    correct: 0,
+    suspects: [
+      {name:"Paul Laurence Dunbar", tag:"the poem 'Frederick Douglass'"},
+      {name:"Frederick Douglass", tag:"My Bondage and My Freedom"},
+      {name:"Laura Phillips", tag:"Escape to Freedom"},
+      {name:"Harriet Beecher Stowe", tag:"Uncle Tom's Cabin"}
+    ],
+    explain: "These are lines from Paul Laurence Dunbar's poem honoring Frederick Douglass after his death. The poetic language and direct address to Douglass ('thou hast passed') mark it as the poem, not a prose passage."
+  },
+  {
+    quote: "Once resolved, I felt a certain degree of repose.",
+    correct: 0,
+    suspects: [
+      {name:"Frederick Douglass", tag:"after deciding to escape"},
+      {name:"Robert Smalls", tag:"before his escape"},
+      {name:"Eliza", tag:"after packing Harry's things"},
+      {name:"Mr. Shelby", tag:"after signing the bills of sale"}
+    ],
+    explain: "This is Douglass writing in his autobiography. After he made the decision to escape, he felt a sense of calm ('repose') \u2014 a classic line showing how clarity of purpose can bring peace even in dangerous circumstances."
+  },
+  {
+    quote: "He dared the lightning in the lightning's track, / And answered thunder with his thunder back.",
+    correct: 2,
+    suspects: [
+      {name:"Laura Phillips", tag:"describing Robert Smalls"},
+      {name:"Frederick Douglass", tag:"describing himself"},
+      {name:"Paul Laurence Dunbar", tag:"describing Frederick Douglass"},
+      {name:"Harriet Beecher Stowe", tag:"describing Eliza"}
+    ],
+    explain: "This is from Dunbar's poem about Douglass. The imagery of matching lightning with lightning and thunder with thunder shows Douglass's willingness to fight back against injustice with equal force. The rhyme and elevated language mark it as poetry."
+  },
+  {
+    quote: "The thing's done; the bills of sale are already signed, and in Haley's hands.",
+    correct: 0,
+    suspects: [
+      {name:"Mr. Shelby", tag:"to his wife Emily"},
+      {name:"Haley", tag:"to Mr. Shelby"},
+      {name:"Master Hugh", tag:"to Frederick Douglass"},
+      {name:"Eliza", tag:"in her letter"}
+    ],
+    explain: "Mr. Shelby tells his wife the sale is final and Tom and Harry have been sold. This exchange is the trigger that sets Eliza's escape in motion \u2014 she's listening from the closet."
+  },
+  {
+    quote: "When Bondage held her bleeding in the dust, / He raised her up and whispered, 'Hope and Trust.'",
+    correct: 0,
+    suspects: [
+      {name:"Paul Laurence Dunbar", tag:"about Douglass lifting up his people"},
+      {name:"Frederick Douglass", tag:"about his own escape"},
+      {name:"Laura Phillips", tag:"about Robert Smalls"},
+      {name:"Harriet Beecher Stowe", tag:"about Eliza"}
+    ],
+    explain: "This is from Dunbar's poem, using 'Bondage' as a personified enemy. Douglass 'raised her up' \u2014 meaning he lifted up his people and gave them hope during the terrible years of slavery."
+  },
+  {
+    quote: "I told him I would, for one of the uses to which I meant to put it, was to pay my fare on the underground railroad.",
+    correct: 0,
+    suspects: [
+      {name:"Frederick Douglass", tag:"about Master Hugh's twenty-five cents"},
+      {name:"Robert Smalls", tag:"about his plan to escape"},
+      {name:"Eliza", tag:"about helping Tom"},
+      {name:"Mr. Shelby", tag:"about his business"}
+    ],
+    explain: "This is classic Douglass irony: Master Hugh gives him a quarter and tells him to 'make good use of it' \u2014 and Douglass secretly plans to use it for his Underground Railroad escape. He tells us this in his autobiography."
+  },
+  {
+    quote: "Disguised that way, he again gave the signal and was allowed to steam past Fort Sumter.",
+    correct: 0,
+    suspects: [
+      {name:"Laura Phillips", tag:"describing Smalls's escape"},
+      {name:"Frederick Douglass", tag:"describing his escape"},
+      {name:"Paul Laurence Dunbar", tag:"in the poem"},
+      {name:"Harriet Beecher Stowe", tag:"describing Eliza"}
+    ],
+    explain: "This is from Laura Phillips's Escape to Freedom article. It describes Robert Smalls wearing the captain's hat as a disguise and using whistle signals to sneak past Fort Sumter. Note the factual, third-person tone \u2014 that's the nonfiction style of Passage 1."
+  },
+  {
+    quote: "No tear dropped over that pillow; in such straits as these, the heart has no tears to give.",
+    correct: 0,
+    suspects: [
+      {name:"Harriet Beecher Stowe", tag:"describing Eliza"},
+      {name:"Frederick Douglass", tag:"describing himself"},
+      {name:"Laura Phillips", tag:"describing Smalls"},
+      {name:"Paul Laurence Dunbar", tag:"describing Douglass"}
+    ],
+    explain: "This is from Uncle Tom's Cabin, describing Eliza as she looks at sleeping Harry. The figurative language \u2014 a heart with 'no tears to give' that 'drops only blood' \u2014 is Stowe's dramatic, emotional prose style."
+  }
+];
+
+// Shuffle cases
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const cases = shuffle(CASES);
+let currentCase = 0;
+let score = 0;
+let streak = 0;
+let answered = false;
+
+function renderCase() {
+  const c = cases[currentCase];
+  answered = false;
+
+  document.getElementById('caseNum').textContent = 'CASE #' + String(currentCase + 1).padStart(3, '0');
+  document.getElementById('scoreText').textContent = score + ' / ' + cases.length;
+  document.getElementById('streakNum').textContent = streak;
+
+  document.getElementById('quoteText').textContent = c.quoteOverride || c.quote;
+
+  const sus = document.getElementById('suspects');
+  sus.innerHTML = '';
+  c.suspects.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'suspect';
+    div.innerHTML = '<span class="name">' + s.name + '</span><span class="tag">' + s.tag + '</span>';
+    div.addEventListener('click', () => selectSuspect(i));
+    sus.appendChild(div);
+  });
+
+  document.getElementById('verdict').classList.remove('show', 'correct', 'wrong');
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('nextBtn').textContent = currentCase < cases.length - 1 ? 'Next Case →' : 'Close Investigation';
+}
+
+function selectSuspect(idx) {
+  if (answered) return;
+  answered = true;
+  const c = cases[currentCase];
+  const suspects = document.querySelectorAll('.suspect');
+  suspects.forEach(s => s.classList.add('disabled'));
+
+  const verdict = document.getElementById('verdict');
+  if (idx === c.correct) {
+    suspects[idx].classList.add('correct');
+    score++;
+    streak++;
+    document.getElementById('verdictTitle').textContent = '✓ CASE SOLVED';
+    verdict.classList.add('correct');
+  } else {
+    suspects[idx].classList.add('wrong');
+    suspects[c.correct].classList.add('reveal');
+    streak = 0;
+    document.getElementById('verdictTitle').textContent = '✗ WRONG SUSPECT';
+    verdict.classList.add('wrong');
+  }
+  document.getElementById('verdictExplain').textContent = c.explain;
+  verdict.classList.add('show');
+
+  document.getElementById('scoreText').textContent = score + ' / ' + cases.length;
+  document.getElementById('streakNum').textContent = streak;
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function nextCase() {
+  currentCase++;
+  if (currentCase >= cases.length) {
+    showFinal();
+  } else {
+    renderCase();
+  }
+}
+
+function showFinal() {
+  document.getElementById('gameArea').style.display = 'none';
+  const panel = document.getElementById('completion');
+  panel.classList.add('show');
+  document.getElementById('finalScore').textContent = score + ' / ' + cases.length;
+  const pct = Math.round((score / cases.length) * 100);
+  let msg;
+  if (pct === 100) msg = "Flawless detective work. Every case solved!";
+  else if (pct >= 80) msg = "Sharp eye! You really know these passages.";
+  else if (pct >= 60) msg = "Solid work, Detective. A few cases got away \u2014 review and try again.";
+  else msg = "The passages are tricky. Take another pass through the texts and come back \u2014 you'll crack it.";
+  document.getElementById('finalMsg').textContent = msg;
+}
+
+renderCase();
+</script>
+</body>
+</html>
