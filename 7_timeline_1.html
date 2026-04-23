@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeline Builder — The Fight for Freedom</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf8f5;--surface:#ffffff;--ink:#1a1a2e;--ink-light:#555568;--accent:#b8860b;--accent-light:#daa520;--accent-bg:#fdf6e3;--success:#2d6a4f;--success-bg:#d8f3dc;--error:#9b2226;--error-bg:#fde8e8;--border:#e0ddd6;--radius:10px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;padding:16px 12px 60px;max-width:640px;margin:0 auto}
+h1{font-family:'Playfair Display',serif;font-weight:900;font-size:1.5rem;text-align:center;margin-bottom:3px}
+.subtitle{text-align:center;color:var(--ink-light);font-size:0.88rem;margin-bottom:4px}
+.instructions{text-align:center;color:var(--ink-light);font-size:0.82rem;margin-bottom:16px;font-style:italic}
+.round-tabs{display:flex;gap:4px;justify-content:center;margin-bottom:14px}
+.round-tab{padding:6px 16px;border-radius:16px;font-weight:600;font-size:0.82rem;border:2px solid var(--border);background:var(--surface);color:var(--ink-light);cursor:default;transition:all 0.2s}
+.round-tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+.round-tab.done{border-color:var(--success);color:var(--success);background:var(--success-bg)}
+.round-title{text-align:center;font-family:'Playfair Display',serif;font-size:1.05rem;margin-bottom:12px}
+.event-list{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.event-row{display:flex;gap:8px;align-items:center;background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:10px 12px;transition:all 0.2s}
+.event-row.correct{border-color:var(--success);background:var(--success-bg)}
+.event-row.wrong{border-color:var(--error);background:var(--error-bg)}
+.order-select{width:52px;padding:6px 4px;border:2px solid var(--border);border-radius:6px;font-family:'Source Sans 3',sans-serif;font-size:0.9rem;font-weight:700;text-align:center;background:white;color:var(--ink);flex-shrink:0;cursor:pointer}
+.order-select:focus{border-color:var(--accent);outline:none}
+.event-text{font-size:0.88rem;line-height:1.4;flex:1}
+.source-tag{display:inline-block;font-size:0.68rem;font-weight:700;padding:1px 6px;border-radius:8px;margin-right:4px;vertical-align:middle}
+.source-tag.smalls{background:#e8eef6;color:#4a6fa5}
+.source-tag.douglass{background:#e8f5e0;color:#3d7a3d}
+.source-tag.eliza{background:#f5e6f0;color:#8a4a7a}
+.correct-num{font-size:0.78rem;color:var(--success);font-weight:700;margin-left:4px;display:none}
+.event-row.wrong .correct-num{display:inline}
+.controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.btn{padding:8px 20px;border-radius:20px;font-family:'Source Sans 3',sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;border:2px solid var(--border);background:var(--surface);color:var(--ink);transition:all 0.2s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);color:white;border-color:var(--accent)}
+.btn.primary:hover{background:var(--accent-light)}
+.feedback{text-align:center;margin-top:10px;font-weight:700;font-size:0.95rem;min-height:24px}
+.feedback.correct{color:var(--success)}
+.feedback.wrong{color:var(--error)}
+.completion{display:none;text-align:center;padding:24px;background:var(--success-bg);border-radius:var(--radius);margin-top:16px}
+.completion.show{display:block;animation:popIn 0.4s ease}
+.completion h2{font-family:'Playfair Display',serif;color:var(--success);font-size:1.3rem;margin-bottom:4px}
+.completion p{color:var(--success);font-size:0.9rem}
+@keyframes popIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+</style>
+</head>
+<body>
+
+<h1>Timeline Builder</h1>
+<p class="subtitle">The Fight for Freedom Unit</p>
+<p class="instructions">Use the dropdowns to number each event in the order it happened (1 = first).</p>
+
+<div class="round-tabs" id="roundTabs"></div>
+<div class="round-title" id="roundTitle"></div>
+<div class="event-list" id="eventList"></div>
+<div class="controls">
+  <button class="btn primary" onclick="checkOrder()">Check Order</button>
+  <button class="btn" onclick="resetRound()">Reset</button>
+</div>
+<div class="feedback" id="feedback"></div>
+<div class="completion" id="completion">
+  <h2>All Timelines Complete!</h2>
+  <p>You've got the sequence of events down. Nice work!</p>
+</div>
+
+<script>
+const ROUNDS = [
+  {
+    title:"Robert Smalls \u2014 Escape to Freedom",
+    tag:"smalls",
+    events:[
+      "Smalls is born into slavery in Beaufort, South Carolina",
+      "Smalls is hired out to work at the docks in Charleston",
+      "Smalls begins working on the Confederate steamer Planter",
+      "The Planter\u2019s white officers leave the ship to spend the night ashore",
+      "Smalls picks up his family and crewmen\u2019s families from a nearby wharf",
+      "Smalls gives the secret whistle signal and passes Fort Sumter",
+      "Smalls surrenders the Planter to the USS Onward",
+      "Smalls meets President Lincoln and convinces him to enlist African Americans",
+      "Smalls is promoted to captain of the Planter",
+    ]
+  },
+  {
+    title:"Eliza \u2014 Uncle Tom\u2019s Cabin",
+    tag:"eliza",
+    events:[
+      "Mr. Shelby tells his wife the bills of sale for Tom and Harry are signed",
+      "Mrs. Shelby refuses to be an accomplice in the \u2018cruel business\u2019",
+      "Eliza hides in a closet and overhears the entire conversation",
+      "Eliza creeps stealthily to her room and sees Harry sleeping",
+      "Eliza writes a note to her mistress asking for forgiveness",
+      "Eliza packs clothing and a few of Harry\u2019s favorite toys",
+      "Eliza wakes Harry and tells him about the \u2018wicked man\u2019",
+      "Eliza and Harry slip out through the verandah into the frosty night",
+    ]
+  },
+  {
+    title:"Frederick Douglass \u2014 My Bondage and My Freedom",
+    tag:"douglass",
+    events:[
+      "Douglass resolves to escape and feels a sense of repose",
+      "Douglass goes to Mr. Butler\u2019s ship yard and obtains work",
+      "Douglass brings Master Hugh nearly nine dollars at end of first week",
+      "Master Hugh is pleased and tells Douglass he should have done this sooner",
+      "Douglass brings full wages a second week; Hugh gives him twenty-five cents",
+      "Douglass spends Friday and Saturday collecting his things for the journey",
+      "Douglass hands Master Hugh six dollars on Saturday night",
+      "On Monday, September 3, 1838, Douglass bids farewell to Baltimore and slavery",
+    ]
+  }
+];
+
+let currentRound = 0;
+
+function shuffleIndices(n) {
+  const arr = Array.from({length:n}, (_,i) => i);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function buildTabs() {
+  const tabs = document.getElementById('roundTabs');
+  tabs.innerHTML = '';
+  ROUNDS.forEach((r, i) => {
+    const tab = document.createElement('div');
+    tab.className = 'round-tab' + (i === currentRound ? ' active' : '');
+    tab.id = 'tab-' + i;
+    tab.textContent = 'Round ' + (i + 1);
+    tabs.appendChild(tab);
+  });
+}
+
+function renderRound() {
+  const round = ROUNDS[currentRound];
+  document.getElementById('roundTitle').textContent = round.title;
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+
+  const list = document.getElementById('eventList');
+  list.innerHTML = '';
+
+  const shuffled = shuffleIndices(round.events.length);
+
+  shuffled.forEach((origIdx) => {
+    const row = document.createElement('div');
+    row.className = 'event-row';
+    row.dataset.correctOrder = origIdx + 1;
+
+    const sel = document.createElement('select');
+    sel.className = 'order-select';
+    sel.innerHTML = '<option value="">-</option>';
+    for (let i = 1; i <= round.events.length; i++) {
+      sel.innerHTML += '<option value="' + i + '">' + i + '</option>';
+    }
+    row.appendChild(sel);
+
+    const text = document.createElement('span');
+    text.className = 'event-text';
+    const tagLabel = round.tag === 'smalls' ? 'Smalls' : round.tag === 'eliza' ? 'Eliza' : 'Douglass';
+    text.innerHTML = '<span class="source-tag ' + round.tag + '">' + tagLabel + '</span>' + round.events[origIdx];
+    row.appendChild(text);
+
+    const correctNum = document.createElement('span');
+    correctNum.className = 'correct-num';
+    correctNum.textContent = '\u2192 #' + (origIdx + 1);
+    row.appendChild(correctNum);
+
+    list.appendChild(row);
+  });
+
+  buildTabs();
+}
+
+function checkOrder() {
+  const rows = document.querySelectorAll('.event-row');
+  let allCorrect = true;
+  let answered = 0;
+
+  rows.forEach(row => {
+    const sel = row.querySelector('.order-select');
+    const chosen = parseInt(sel.value);
+    const correct = parseInt(row.dataset.correctOrder);
+    row.classList.remove('correct', 'wrong');
+    if (!sel.value) { allCorrect = false; return; }
+    answered++;
+    if (chosen === correct) { row.classList.add('correct'); }
+    else { row.classList.add('wrong'); allCorrect = false; }
+  });
+
+  const fb = document.getElementById('feedback');
+  const round = ROUNDS[currentRound];
+
+  if (answered < round.events.length) {
+    fb.textContent = 'Fill in all the numbers before checking!';
+    fb.className = 'feedback wrong';
+    return;
+  }
+
+  if (allCorrect) {
+    fb.textContent = 'Perfect! All events are in the correct order!';
+    fb.className = 'feedback correct';
+    document.getElementById('tab-' + currentRound).className = 'round-tab done';
+    setTimeout(() => {
+      currentRound++;
+      if (currentRound >= ROUNDS.length) {
+        document.getElementById('completion').classList.add('show');
+        document.getElementById('eventList').style.display = 'none';
+        document.querySelector('.controls').style.display = 'none';
+      } else { renderRound(); }
+    }, 1200);
+  } else {
+    const correctCount = Array.from(rows).filter(r => r.classList.contains('correct')).length;
+    fb.textContent = correctCount + ' of ' + round.events.length + ' in the right spot. Green = correct, red shows the right number.';
+    fb.className = 'feedback wrong';
+  }
+}
+
+function resetRound() { renderRound(); }
+renderRound();
+</script>
+</body>
+</html>
